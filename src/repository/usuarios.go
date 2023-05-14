@@ -2,6 +2,7 @@ package repository
 
 import (
 	"api/src/models"
+	"errors"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -70,4 +71,28 @@ func (repositorio Usuarios) BuscarUsuarios() ([]models.Usuario, error) {
 		return []models.Usuario{}, erro
 	}
 	return usuarios, nil
+}
+
+// AtualizarUsuario Atualiza as informações de um usuário no banco
+func (repositorio Usuarios) AtualizarUsuario(usuarioId uint64, usuario models.Usuario) error {
+	statement, erro := repositorio.db.Exec(
+		` UPDATE Usuarios SET nome =?, email =?, senha =? WHERE id =? `,
+		usuario.Nome,
+		usuario.Email,
+		usuario.Senha,
+		usuarioId,
+	)
+	if erro != nil {
+		return erro
+	}
+
+	linhasAfetadas, erro := statement.RowsAffected()
+	if erro != nil {
+		return erro
+	}
+
+	if linhasAfetadas == 0 {
+		return errors.New("nenhum registro foi afetado, Verifique os dados fornecidos e tente novamente")
+	}
+	return nil
 }
