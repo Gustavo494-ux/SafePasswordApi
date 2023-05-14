@@ -15,6 +15,7 @@ func NovoRepositoDeUsuario(db *sqlx.DB) *Usuarios {
 	return &Usuarios{db}
 }
 
+// CriarUsuario Adiciona um novo usuário
 func (repositorio Usuarios) CriarUsuario(Usuario models.Usuario) (uint64, error) {
 	statement, erro := repositorio.db.Exec(
 		` INSERT INTO Usuarios (nome, email, senha ) values (?,?,?) `,
