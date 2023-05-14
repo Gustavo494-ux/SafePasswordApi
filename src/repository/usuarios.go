@@ -24,12 +24,15 @@ func (repositorio Usuarios) CriarUsuario(Usuario models.Usuario) (uint64, error)
 		Usuario.Email,
 		Usuario.Senha,
 	)
-	if erro != nil {
-		return 0, erro
+	linhasAfetadas, err := statement.RowsAffected()
+	if linhasAfetadas == 0 {
+		return 0, errors.New("nenhuma linha foi afetada, verifique os dados passados")
+	}
+	if err != nil {
+		return 0, err
 	}
 
-	linhasAfetadas, erro := statement.RowsAffected()
-	if erro != nil || linhasAfetadas == 0 {
+	if erro != nil {
 		return 0, erro
 	}
 
@@ -47,6 +50,11 @@ func (repositorio Usuarios) BuscarPorId(usuarioId uint64) (models.Usuario, error
 		` SELECT id,nome,email,criadoem FROM Usuarios WHERE id = ? `,
 		usuarioId,
 	)
+
+	if usuarios.ID == 0 {
+		return models.Usuario{}, errors.New("nenhum usuário foi encontrado, verifique os dados passados")
+	}
+
 	if erro != nil {
 		return models.Usuario{}, erro
 	}
@@ -57,6 +65,9 @@ func (repositorio Usuarios) BuscarPorId(usuarioId uint64) (models.Usuario, error
 func (repositorio Usuarios) BuscarPorEmail(email string) (models.Usuario, error) {
 	usuarios := models.Usuario{}
 	erro := repositorio.db.Get(&usuarios, "SELECT id,senha FROM Usuarios WHERE email = ?", email)
+	if usuarios.ID == 0 {
+		return models.Usuario{}, errors.New("nenhum usuário foi encontrado, verifique os dados fornecidos")
+	}
 	if erro != nil {
 		return models.Usuario{}, erro
 	}
@@ -66,7 +77,11 @@ func (repositorio Usuarios) BuscarPorEmail(email string) (models.Usuario, error)
 // BuscarUsuario busca todos os usuários salvos no banco
 func (repositorio Usuarios) BuscarUsuarios() ([]models.Usuario, error) {
 	var usuarios []models.Usuario
-	erro := repositorio.db.Select(&usuarios, "SELECT id,nome,email,senha FROM Usuarios")
+	erro := repositorio.db.Select(&usuarios, "SELECT id,nome,email,senha FROM Usuarios ")
+	if len(usuarios) == 0 {
+		return []models.Usuario{}, errors.New("nenhum usuário foi encontrado, verifique os dados fornecidos")
+	}
+
 	if erro != nil {
 		return []models.Usuario{}, erro
 	}
@@ -82,17 +97,38 @@ func (repositorio Usuarios) AtualizarUsuario(usuarioId uint64, usuario models.Us
 		usuario.Senha,
 		usuarioId,
 	)
-	if erro != nil {
-		return erro
-	}
-
-	linhasAfetadas, erro := statement.RowsAffected()
-	if erro != nil {
-		return erro
+	linhasAfetadas, err := statement.RowsAffected()
+	if err != nil {
+		return err
 	}
 
 	if linhasAfetadas == 0 {
-		return errors.New("nenhum registro foi afetado, Verifique os dados fornecidos e tente novamente")
+		return errors.New("nenhum registro foi afetado, Verifique os dados fornecidos")
 	}
+
+	if erro != nil {
+		return erro
+	}
+	return nil
+}
+
+// DeletarUsuario deleta um usuário do banco de dados
+func (repositorio Usuarios) DeletarUsuario(usuarioId uint64) error {
+	statement, erro := repositorio.db.Exec(
+		` DELETE FROM Usuarios WHERE id =? `,
+		usuarioId,
+	)
+	linhasAfetadas, err := statement.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if linhasAfetadas == 0 {
+		return errors.New("nenhum registro foi afetado, Verifique os dados fornecidos")
+	}
+
+	if erro != nil {
+		return erro
+	}
+
 	return nil
 }
