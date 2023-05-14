@@ -53,7 +53,26 @@ func CriarUsuario(w http.ResponseWriter, r *http.Request) {
 
 // BuscarUsuario busca todos os usuários salvos no banco
 func BuscarUsuarios(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Buscando todos os  usuários"))
+	db, erro := banco.Conectar()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+	defer db.Close()
+
+	repositorio := repository.NovoRepositoDeUsuario(db)
+	usuarios, erro := repositorio.BuscarUsuarios()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	if len(usuarios) == 0 {
+		respostas.JSON(w, http.StatusNotFound, "Nenhum Usuário foi encontrado")
+		return
+	}
+
+	respostas.JSON(w, http.StatusOK, usuarios)
 }
 
 // BuscarUsuarios busca um  usuário no banco de dados

@@ -61,3 +61,13 @@ func (repositorio Usuarios) BuscarPorEmail(email string) (models.Usuario, error)
 	}
 	return usuarios, nil
 }
+
+// BuscarUsuario busca todos os usuários salvos no banco
+func (repositorio Usuarios) BuscarUsuarios() ([]models.Usuario, error) {
+	var usuarios []models.Usuario
+	erro := repositorio.db.Select(&usuarios, "SELECT id,nome,email,senha FROM Usuarios")
+	if erro != nil {
+		return []models.Usuario{}, erro
+	}
+	return usuarios, nil
+}
