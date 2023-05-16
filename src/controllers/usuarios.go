@@ -55,7 +55,7 @@ func CriarUsuario(w http.ResponseWriter, r *http.Request) {
 	respostas.JSON(w, http.StatusCreated, usuario)
 }
 
-// BuscarUsuario busca todos os usuários salvos no banco
+// BuscarUsuarios busca todos os usuários salvos no banco
 func BuscarUsuarios(w http.ResponseWriter, r *http.Request) {
 	db, erro := banco.Conectar()
 	if erro != nil {
@@ -77,6 +77,36 @@ func BuscarUsuarios(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respostas.JSON(w, http.StatusOK, usuarios)
+}
+
+// BuscarUsuarioLogado o usuário que está logado
+func BuscarUsuarioLogado(w http.ResponseWriter, r *http.Request) {
+	idUsuarioLogado, erro := authentication.ExtrairUsuarioID(r)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+	db, erro := banco.Conectar()
+
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+	defer db.Close()
+
+	repositorio := repository.NovoRepositoDeUsuario(db)
+	usuario, erro := repositorio.BuscarPorId(idUsuarioLogado)
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	if usuario.ID == 0 {
+		respostas.JSON(w, http.StatusNotFound, "Nenhum Usuário foi encontrado")
+		return
+	}
+
+	respostas.JSON(w, http.StatusOK, usuario)
 }
 
 // BuscarUsuarios busca um  usuário no banco de dados
@@ -173,45 +203,45 @@ func AtualizarUsuario(w http.ResponseWriter, r *http.Request) {
 func DeletarUsuario(w http.ResponseWriter, r *http.Request) {
 	parametros := mux.Vars(r)
 	usuarioId, erro := strconv.ParseUint(parametros["usuarioId"], 10, 64)
-	if erro!= nil {
-        respostas.Erro(w, http.StatusBadRequest, erro)
-        return
-    }
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
 
 	idUsuarioLogado, erro := authentication.ExtrairUsuarioID(r)
-	if erro!= nil {
-        respostas.Erro(w, http.StatusBadRequest, erro)
-        return
-    }
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
 
-	if usuarioId!= idUsuarioLogado {
-        respostas.JSON(w, http.StatusUnauthorized, "Você não pode excluir usuário que não seja o seu!")
-        return
-    }
+	if usuarioId != idUsuarioLogado {
+		respostas.JSON(w, http.StatusUnauthorized, "Você não pode excluir usuário que não seja o seu!")
+		return
+	}
 
 	db, erro := banco.Conectar()
-	if erro!= nil {
-        respostas.Erro(w, http.StatusInternalServerError, erro)
-        return
-    }
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
 	defer db.Close()
 
 	repositorio := repository.NovoRepositoDeUsuario(db)
 	usuarioBanco, erro := repositorio.BuscarPorId(usuarioId)
-	if erro!= nil {
-        respostas.Erro(w, http.StatusInternalServerError, erro)
-        return
-    }
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
 
 	if usuarioBanco.ID == 0 {
-        respostas.JSON(w, http.StatusNotFound, "Usuário não encontrado")
-        return
-    }
+		respostas.JSON(w, http.StatusNotFound, "Usuário não encontrado")
+		return
+	}
 
-	if erro = repositorio.DeletarUsuario(usuarioId); erro!= nil {
-        respostas.Erro(w, http.StatusInternalServerError, erro)
-        return
-    }
+	if erro = repositorio.DeletarUsuario(usuarioId); erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
 
 	respostas.JSON(w, http.StatusNoContent, nil)
 }
