@@ -19,9 +19,10 @@ func NovoRepositoDeSenha(db *sqlx.DB) *Senhas {
 // Criar salva uma nova senha no banco de dados
 func (repositorio Senhas) Criar(usuarioId uint64, senha models.Senha) (uint64, error) {
 	statemente, erro := repositorio.db.Exec(
-		` INSERT INTO Senhas (UsuarioId,Nome,Senha) VALUES (?,?,?) `,
+		` INSERT INTO Senhas (UsuarioId,Descricao,Login,Senha) VALUES (?,?,?,?) `,
 		usuarioId,
-		senha.Nome,
+		senha.Descricao,
+		senha.Login,
 		senha.Senha,
 	)
 
@@ -50,7 +51,7 @@ func (repositorio Senhas) Criar(usuarioId uint64, senha models.Senha) (uint64, e
 func (repositorio Senhas) BuscarPorId(Id uint64) (models.Senha, error) {
 	senha := models.Senha{}
 	erro := repositorio.db.Get(&senha,
-		` Select id, usuarioid, nome,senha,criadoem from Senhas where id = ? `,
+		` Select id, usuarioid, descricao,login,senha,criadoem from Senhas where id = ? `,
 		Id,
 	)
 

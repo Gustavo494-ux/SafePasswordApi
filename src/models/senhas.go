@@ -6,10 +6,11 @@ import (
 )
 
 type Senha struct {
-	Id        int64     `json:"id,omitempty" db:"id"`
-	UsuarioId int64     `json:"usuarioId,omitempty" db:"usuarioid"`
-	Nome      string    `json:"nome,omitempty" db:"Nome"`
-	Senha     string    `json:"senha,omitempty" db:"senha"`
+	Id        int64     `json:"id,omitempty" db:"id,omitempty"`
+	UsuarioId int64     `json:"usuarioId,omitempty" db:"usuarioid,omitempty"`
+	Descricao string    `json:"descricao,omitempty" db:"descricao,omitempty"`
+	Login     string    `json:"login,omitempty" db:"login,omitempty"`
+	Senha     string    `json:"senha,omitempty" db:"senha,omitempty"`
 	CriadoEm  time.Time `json:"criadoEm,omitempty" db:"criadoEm,omitempty"`
 }
 
@@ -18,7 +19,7 @@ func (senha *Senha) Validar() error {
 	if senha.UsuarioId == 0 {
 		return errors.New("usuário o qual a senha pertence não foi informado")
 	}
-	if senha.Nome == "" {
+	if senha.Descricao == "" {
 		return errors.New("nome da senha é obrigatorio")
 	}
 	if senha.Senha == "" {
