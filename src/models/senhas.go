@@ -6,11 +6,11 @@ import (
 )
 
 type Senha struct {
-	Id        uint      `json:"id,omitempty" db:"id"`
-	UsuarioId uint      `json:"usuarioId,omitempty" db:"usuarioId"`
-	Nome      string    `json:"Nome,omitempty" db:"Nome"`
+	Id        int64     `json:"id,omitempty" db:"id"`
+	UsuarioId int64     `json:"usuarioId,omitempty" db:"usuarioid"`
+	Nome      string    `json:"nome,omitempty" db:"Nome"`
 	Senha     string    `json:"senha,omitempty" db:"senha"`
-	CriadoEm  time.Time `json:"criadoEm,omitempty" db:"criadoEm"`
+	CriadoEm  time.Time `json:"criadoEm,omitempty" db:"criadoEm,omitempty"`
 }
 
 // Validar realiza a verificação se cada campo está devidamente preenchido

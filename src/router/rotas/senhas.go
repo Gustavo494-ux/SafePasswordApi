@@ -9,31 +9,31 @@ var rotasSenhas = []Rota{
 	{
 		URI:                    "/senhas",
 		Method:                 http.MethodPost,
-		Function:               controllers.CriarUsuario,
+		Function:               controllers.CriarSenha,
 		RequiresAuthentication: true,
 	},
 	{
 		URI:                    "/senhas/senhaId",
 		Method:                 http.MethodGet,
-		Function:               controllers.CriarUsuario,
+		Function:               controllers.BuscarSenhaPorId,
 		RequiresAuthentication: true,
 	},
 	{
 		URI:                    "/senhas/usuarioId",
 		Method:                 http.MethodGet,
-		Function:               controllers.CriarUsuario,
+		Function:               controllers.BuscarSenhaPorUsuario,
 		RequiresAuthentication: true,
 	},
 	{
 		URI:                    "/senhas/senhaId",
 		Method:                 http.MethodPut,
-		Function:               controllers.CriarUsuario,
+		Function:               controllers.AtualizarSenha,
 		RequiresAuthentication: true,
 	},
 	{
 		URI:                    "/senhas/senhaId",
 		Method:                 http.MethodDelete,
-		Function:               controllers.CriarUsuario,
+		Function:               controllers.DeletarSenha,
 		RequiresAuthentication: true,
 	},
 }
