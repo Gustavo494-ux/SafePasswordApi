@@ -20,4 +20,7 @@ CREATE TABLE IF NOT exists Senhas(
     CriadoEm timestamp default current_timestamp
 )ENGINE=InnoDB;
 
+
 alter table Senhas add foreign key(UsuarioId) references Usuarios(id) ON DELETE CASCADE;
+alter table Senhas add foreign key(UsuarioId) references Usuarios(id) ON DELETE CASCADE;
+
