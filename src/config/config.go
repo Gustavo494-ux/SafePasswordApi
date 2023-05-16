@@ -38,6 +38,4 @@ func Carregar() {
 		os.Getenv("Port_DATABASE"),
 		os.Getenv("DB_NAME"),
 	)
-
-	fmt.Println(StringConexao)
 }
