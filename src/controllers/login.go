@@ -44,11 +44,12 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 	}
 
-	token, erro := authentication.CriarToken(uint64(usuarioBanco.ID))
+	var login models.Login
+	login.Token, erro = authentication.CriarToken(uint64(usuarioBanco.ID))
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
-	respostas.JSON(w, http.StatusOK, token)
+	respostas.JSON(w, http.StatusOK, login)
 }
