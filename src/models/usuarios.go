@@ -1,8 +1,10 @@
 package models
 
 import (
-	"api/src/security"
 	"errors"
+	"fmt"
+	"safePasswordApi/src/security"
+	"strconv"
 	"strings"
 	"time"
 
@@ -10,7 +12,7 @@ import (
 )
 
 type Usuario struct {
-	ID       int64     `json:"id,omitempty" db:"id"`
+	ID       uint64    `json:"id,omitempty" db:"id"`
 	Nome     string    `json:"nome,omitempty" db:"nome"`
 	Email    string    `json:"email,omitempty" db:"email"`
 	Senha    string    `json:"senha,omitempty" db:"senha"`
@@ -51,7 +53,6 @@ func (usuario *Usuario) validar(etapa string) error {
 
 func (usuario *Usuario) formatar(etapa string) error {
 	usuario.Nome = strings.TrimSpace(usuario.Nome)
-
 	usuario.Email = strings.TrimSpace(usuario.Email)
 
 	if etapa == "cadastro" {
@@ -59,8 +60,33 @@ func (usuario *Usuario) formatar(etapa string) error {
 		if erro != nil {
 			return erro
 		}
-		usuario.Senha = string(senhaHash)
+		usuario.Senha = senhaHash
+		fmt.Println(usuario.Senha)
 	}
 
 	return nil
+}
+
+func (usuario *Usuario) GerarChaveDeCodificacaoSimetrica() ([]byte, error) {
+	idHash, erro := security.GerarHash(strconv.FormatUint(usuario.ID, 10))
+	if erro != nil {
+		return []byte{}, erro
+	}
+
+	var senhaHash string
+	if len(usuario.Senha) == 128 {
+		senhaHash = usuario.Senha
+	} else {
+		senhaHash, erro = security.GerarHash(usuario.Senha)
+		if erro != nil {
+			return []byte{}, erro
+		}
+	}
+
+	chaveDeCodificacao, erro := security.GerarHash(fmt.Sprintf(idHash, usuario.ID, senhaHash))
+	if erro != nil {
+		return []byte{}, erro
+	}
+	fmt.Println(chaveDeCodificacao)
+	return []byte(chaveDeCodificacao), nil
 }

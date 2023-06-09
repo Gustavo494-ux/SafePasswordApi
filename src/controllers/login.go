@@ -1,55 +1,44 @@
 package controllers
 
 import (
-	"api/src/authentication"
-	"api/src/banco"
-	"api/src/models"
-	"api/src/repository"
-	"api/src/respostas"
-	"api/src/security"
-	"encoding/json"
-	"io/ioutil"
 	"net/http"
+	"safePasswordApi/src/database"
+	"safePasswordApi/src/models"
+	"safePasswordApi/src/repository"
+	"safePasswordApi/src/security"
+
+	"github.com/labstack/echo/v4"
 )
 
 // Login
-func Login(w http.ResponseWriter, r *http.Request) {
-	corpoRequisicao, erro := ioutil.ReadAll(r.Body)
-	if erro != nil {
-		http.Error(w, erro.Error(), http.StatusUnprocessableEntity)
-		return
-	}
-
+func Login(c echo.Context) error {
 	var usuario models.Usuario
-	if erro = json.Unmarshal(corpoRequisicao, &usuario); erro != nil {
-		http.Error(w, erro.Error(), http.StatusBadRequest)
-		return
+	erro := c.Bind(&usuario)
+	if erro != nil {
+		return c.String(http.StatusBadRequest, erro.Error())
 	}
 
-	db, erro := banco.Conectar()
+	db, erro := database.Conectar()
 	if erro != nil {
-		http.Error(w, erro.Error(), http.StatusInternalServerError)
-		return
+		return c.JSON(http.StatusInternalServerError, erro.Error())
 	}
 	defer db.Close()
 
 	repositorio := repository.NovoRepositoDeUsuario(db)
 	usuarioBanco, erro := repositorio.BuscarPorEmail(usuario.Email)
 	if erro != nil {
-		respostas.Erro(w, http.StatusInternalServerError, erro)
-		return
+		return c.JSON(http.StatusInternalServerError, erro.Error())
 	}
 
-	if erro = security.VerificarSenha(usuarioBanco.Senha, usuario.Senha); erro != nil {
-		respostas.Erro(w, http.StatusInternalServerError, erro)
+	if erro = security.CompararHash(usuarioBanco.Senha, usuario.Senha); erro != nil {
+		return c.JSON(http.StatusInternalServerError, erro.Error())
 	}
 
 	var login models.Login
-	login.Token, erro = authentication.CriarToken(uint64(usuarioBanco.ID))
+	login.Token, erro = security.CriarTokenJWT(usuarioBanco.ID)
 	if erro != nil {
-		respostas.Erro(w, http.StatusInternalServerError, erro)
-		return
+		return c.JSON(http.StatusInternalServerError, erro.Error())
 	}
 
-	respostas.JSON(w, http.StatusOK, login)
+	return c.JSON(http.StatusOK, login)
 }

@@ -1,4 +1,4 @@
-package config
+package configs
 
 import (
 	"fmt"
@@ -30,7 +30,6 @@ func Carregar() {
 
 	SecretKey = []byte(os.Getenv("SECRET_KEY"))
 
-	//"user:password@tcp(hostname:port)/database_name"
 	StringConexao = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
 		os.Getenv("DB_USUARIO"),
 		os.Getenv("DB_SENHA"),
