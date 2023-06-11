@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	"safePasswordApi/src/models"
 
 	"github.com/jmoiron/sqlx"
@@ -18,6 +19,7 @@ func NovoRepositoDeCredencial(db *sqlx.DB) *Credencial {
 
 // CriarCredencial Adiciona um nova credencial
 func (repositorio Credencial) CriarCredencial(credencial models.Credencial) (uint64, error) {
+	fmt.Println(credencial)
 	statement, erro := repositorio.db.Exec(
 		` INSERT INTO Credenciais (UsuarioId,Descricao,siteUrl,Login,Senha ) values (?,?,?,?,?) `,
 		credencial.UsuarioId,
@@ -28,13 +30,16 @@ func (repositorio Credencial) CriarCredencial(credencial models.Credencial) (uin
 	)
 	linhasAfetadas, err := statement.RowsAffected()
 	if linhasAfetadas == 0 {
+		fmt.Println(err)
 		return 0, errors.New("nenhuma linha foi afetada, verifique os dados passados")
 	}
 	if err != nil {
+		fmt.Println(err)
 		return 0, err
 	}
 
 	if erro != nil {
+		fmt.Println(err)
 		return 0, erro
 	}
 
