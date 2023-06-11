@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 	"safePasswordApi/src/database"
 	"safePasswordApi/src/models"
 	"safePasswordApi/src/repository"
 	"safePasswordApi/src/security"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -61,7 +63,43 @@ func CriarCredencial(c echo.Context) error {
 
 // BuscarCredencials busca uma Credencial no banco de dados
 func BuscarCredencial(c echo.Context) error {
-	return c.JSON(http.StatusOK, "Rota não implementada")
+	credencialId, erro := strconv.ParseUint(c.Param("credencialId"), 10, 64)
+	if erro != nil {
+		return c.JSON(http.StatusBadRequest, erro)
+	}
+
+	db, erro := database.Conectar()
+	if erro != nil {
+		return c.JSON(http.StatusInternalServerError, erro.Error())
+	}
+	defer db.Close()
+
+	repositorio := repository.NovoRepositoDeCredencial(db)
+	credencial, erro := repositorio.BuscarCredencialPorId(credencialId)
+	if erro != nil {
+		return c.JSON(http.StatusInternalServerError, erro.Error())
+	}
+
+	if credencial.Id == 0 {
+		return c.JSON(http.StatusNotFound, errors.New("nenhuma credencial foi encontrado"))
+	}
+
+	repositorioUsuario := repository.NovoRepositoDeUsuario(db)
+	usuarioBanco, erro := repositorioUsuario.BuscarPorId(credencial.UsuarioId)
+	if erro != nil {
+		return c.JSON(http.StatusInternalServerError, erro.Error())
+	}
+
+	chave, erro := usuarioBanco.GerarChaveDeCodificacaoSimetrica()
+	if erro != nil {
+		return c.JSON(http.StatusInternalServerError, erro)
+	}
+
+	if erro = credencial.Preparar("consultarDados", string(chave)); erro != nil {
+		return c.JSON(http.StatusBadRequest, erro)
+	}
+
+	return c.JSON(http.StatusOK, credencial)
 }
 
 // BuscarCredencials busca todas as credenciais no banco de dados

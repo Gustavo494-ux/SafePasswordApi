@@ -19,7 +19,6 @@ func NovoRepositoDeCredencial(db *sqlx.DB) *Credencial {
 
 // CriarCredencial Adiciona um nova credencial
 func (repositorio Credencial) CriarCredencial(credencial models.Credencial) (uint64, error) {
-	fmt.Println(credencial)
 	statement, erro := repositorio.db.Exec(
 		` INSERT INTO Credenciais (UsuarioId,Descricao,siteUrl,Login,Senha ) values (?,?,?,?,?) `,
 		credencial.UsuarioId,
@@ -54,7 +53,7 @@ func (repositorio Credencial) CriarCredencial(credencial models.Credencial) (uin
 func (repositorio Credencial) BuscarCredencialPorId(credencialId uint64) (models.Credencial, error) {
 	credencial := models.Credencial{}
 	erro := repositorio.db.Get(&credencial,
-		` SELECT UsuarioId,Descricao,siteUrl,Login,Senha,CriadoEm from Credenciais WHERE id = ? `,
+		` SELECT id, usuarioId,descricao,siteUrl,login,senha,criadoem from Credenciais WHERE id = ? `,
 		credencialId,
 	)
 
