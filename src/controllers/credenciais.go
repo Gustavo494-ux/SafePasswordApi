@@ -102,9 +102,49 @@ func BuscarCredencial(c echo.Context) error {
 	return c.JSON(http.StatusOK, credencial)
 }
 
-// BuscarCredencials busca todas as credenciais no banco de dados
+// BuscarCredencials busca todas as credenciais do usuário logado
 func BuscarCredenciais(c echo.Context) error {
-	return c.JSON(http.StatusOK, "Rota não implementada")
+	usuarioId, erro := security.ExtrairUsuarioID(c)
+	if erro != nil {
+		return c.JSON(http.StatusUnauthorized, erro)
+	}
+
+	db, erro := database.Conectar()
+	if erro != nil {
+		return c.JSON(http.StatusInternalServerError, erro.Error())
+	}
+	defer db.Close()
+
+	repositorio := repository.NovoRepositoDeCredencial(db)
+	credenciaisBanco, erro := repositorio.BuscarCredenciais(usuarioId)
+	if erro != nil {
+		return c.JSON(http.StatusInternalServerError, erro.Error())
+	}
+
+	if len(credenciaisBanco) == 0 {
+		return c.JSON(http.StatusNotFound, errors.New("nenhuma credencial foi encontrado"))
+	}
+
+	repositorioUsuario := repository.NovoRepositoDeUsuario(db)
+	usuarioBanco, erro := repositorioUsuario.BuscarPorId(usuarioId)
+	if erro != nil {
+		return c.JSON(http.StatusInternalServerError, erro.Error())
+	}
+
+	chave, erro := usuarioBanco.GerarChaveDeCodificacaoSimetrica()
+	if erro != nil {
+		return c.JSON(http.StatusInternalServerError, erro)
+	}
+
+	var credenciaisDescriptografadas []models.Credencial
+	for _, credencial := range credenciaisBanco {
+		if erro := credencial.Preparar("consultarDados", string(chave)); erro != nil {
+			return c.JSON(http.StatusBadRequest, erro)
+		}
+		credenciaisDescriptografadas = append(credenciaisDescriptografadas, credencial)
+	}
+
+	return c.JSON(http.StatusOK, credenciaisDescriptografadas)
 }
 
 // AtualizarCredencial Atualiza as informações de uma Credencial no banco

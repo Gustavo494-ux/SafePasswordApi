@@ -68,9 +68,12 @@ func (repositorio Credencial) BuscarCredencialPorId(credencialId uint64) (models
 }
 
 // BuscarCredenciais busca todas as credenciais salvas no banco
-func (repositorio Credencial) BuscarCredenciais() ([]models.Credencial, error) {
+func (repositorio Credencial) BuscarCredenciais(usuarioId uint64) ([]models.Credencial, error) {
 	var credenciais []models.Credencial
-	erro := repositorio.db.Select(&credenciais, "SELECT UsuarioId,Descricao,siteUrl,Login,Senha,CriadoEm from Credenciais FROM Credenciais ")
+	erro := repositorio.db.Select(&credenciais,
+		"SELECT id, usuarioId,descricao,siteUrl,login,senha,criadoem from Credenciais WHERE usuarioId = ?",
+		usuarioId,
+	)
 	if len(credenciais) == 0 {
 		return []models.Credencial{}, errors.New("nenhuma credencial foi encontrada, verifique os dados fornecidos")
 	}
