@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"safePasswordApi/src/models"
@@ -53,17 +54,18 @@ func (repositorio Credencial) CriarCredencial(credencial models.Credencial) (uin
 func (repositorio Credencial) BuscarCredencialPorId(credencialId uint64) (models.Credencial, error) {
 	credencial := models.Credencial{}
 	erro := repositorio.db.Get(&credencial,
-		` SELECT id, usuarioId,descricao,siteUrl,login,senha,criadoem from Credenciais WHERE id = ? `,
+		`SELECT id, usuarioId, descricao, siteUrl, login, senha, criadoem FROM Credenciais WHERE id = ?`,
 		credencialId,
 	)
 
-	if credencial.Id == 0 {
+	if erro == sql.ErrNoRows {
 		return models.Credencial{}, errors.New("nenhuma credencial foi encontrada, verifique os dados passados")
 	}
 
 	if erro != nil {
 		return models.Credencial{}, erro
 	}
+
 	return credencial, nil
 }
 
@@ -87,24 +89,27 @@ func (repositorio Credencial) BuscarCredenciais(usuarioId uint64) ([]models.Cred
 // AtualizarCredencial Atualiza as informações de uma credencial no banco
 func (repositorio Credencial) AtualizarCredencial(credencialId uint64, credencial models.Credencial) error {
 	statement, erro := repositorio.db.Exec(
-		` UPDATE Credenciais SET Descricao =?, SiteUrl =?, Login =?,Senha = ? WHERE id =? `,
+		`UPDATE Credenciais SET descricao=?, siteUrl=?, login=?, senha=? WHERE id=?`,
 		credencial.Descricao,
 		credencial.SiteUrl,
 		credencial.Login,
 		credencial.Senha,
+		credencialId,
 	)
+
+	if erro != nil {
+		return erro
+	}
+
 	linhasAfetadas, err := statement.RowsAffected()
 	if err != nil {
 		return err
 	}
 
 	if linhasAfetadas == 0 {
-		return errors.New("nenhum registro foi afetado, Verifique os dados fornecidos")
+		return errors.New("nenhum registro foi afetado, verifique os dados fornecidos")
 	}
 
-	if erro != nil {
-		return erro
-	}
 	return nil
 }
 
