@@ -221,5 +221,35 @@ func AtualizarCredencial(c echo.Context) error {
 
 // DeletarCredencial deleta um Credencial do banco de dados
 func DeletarCredencial(c echo.Context) error {
-	return c.JSON(http.StatusNoContent, "Rota não implementada")
+	credencialId, erro := strconv.ParseUint(c.Param("credencialId"), 10, 64)
+	if erro != nil {
+		return c.JSON(http.StatusBadRequest, erro)
+	}
+
+	usuarioId, erro := security.ExtrairUsuarioID(c)
+	if erro != nil {
+		return c.JSON(http.StatusUnauthorized, erro)
+	}
+
+	db, erro := database.Conectar()
+	if erro != nil {
+		return c.JSON(http.StatusInternalServerError, erro.Error())
+	}
+	defer db.Close()
+
+	repositorio := repository.NovoRepositoDeCredencial(db)
+	credencialBanco, erro := repositorio.BuscarCredencialPorId(credencialId)
+	if erro != nil {
+		return c.JSON(http.StatusInternalServerError, erro.Error())
+	}
+
+	if credencialBanco.UsuarioId != usuarioId {
+		return c.JSON(http.StatusNotFound, errors.New("não é possível deletar uma credencial de outro usuário"))
+	}
+
+	if erro := repositorio.DeletarCredencial(credencialId); erro != nil {
+		return c.JSON(http.StatusInternalServerError, erro.Error())
+	}
+
+	return c.JSON(http.StatusNoContent, "Credencial excluida com sucesso!")
 }
