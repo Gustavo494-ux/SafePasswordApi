@@ -27,12 +27,10 @@ func CriarTokenJWT(usuarioID uint64) (string, error) {
 // ValidarToken verifica se o token passado na requisição é válido
 func ValidarToken(c echo.Context) error {
 	tokenString := extrairToken(c)
-	token, erro := jwt.Parse(tokenString, retornarChaveDeVerificacao)
+	_, erro := jwt.Parse(tokenString, retornarChaveDeVerificacao)
 	if erro != nil {
 		return erro
 	}
-
-	fmt.Println(token)
 	return nil
 }
 

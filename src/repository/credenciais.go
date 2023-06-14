@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"safePasswordApi/src/models"
 
 	"github.com/jmoiron/sqlx"
@@ -30,16 +29,13 @@ func (repositorio Credencial) CriarCredencial(credencial models.Credencial) (uin
 	)
 	linhasAfetadas, err := statement.RowsAffected()
 	if linhasAfetadas == 0 {
-		fmt.Println(err)
 		return 0, errors.New("nenhuma linha foi afetada, verifique os dados passados")
 	}
 	if err != nil {
-		fmt.Println(err)
 		return 0, err
 	}
 
 	if erro != nil {
-		fmt.Println(err)
 		return 0, erro
 	}
 

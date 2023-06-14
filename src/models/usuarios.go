@@ -61,7 +61,6 @@ func (usuario *Usuario) formatar(etapa string) error {
 			return erro
 		}
 		usuario.Senha = senhaHash
-		fmt.Println(usuario.Senha)
 	}
 
 	return nil
@@ -87,6 +86,5 @@ func (usuario *Usuario) GerarChaveDeCodificacaoSimetrica() ([]byte, error) {
 	if erro != nil {
 		return []byte{}, erro
 	}
-	fmt.Println(chaveDeCodificacao)
 	return []byte(chaveDeCodificacao), nil
 }
