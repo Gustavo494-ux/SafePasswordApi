@@ -6,7 +6,7 @@ import (
 	"safePasswordApi/src/database"
 	"safePasswordApi/src/models"
 	"safePasswordApi/src/repository"
-	"safePasswordApi/src/security"
+	"safePasswordApi/src/security/auth"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -20,7 +20,7 @@ func CriarCredencial(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, erro)
 	}
 
-	usuarioId, erro := security.ExtrairUsuarioID(c)
+	usuarioId, erro := auth.ExtrairUsuarioID(c)
 	if erro != nil {
 		return c.JSON(http.StatusUnauthorized, erro)
 	}
@@ -104,7 +104,7 @@ func BuscarCredencial(c echo.Context) error {
 
 // BuscarCredencials busca todas as credenciais do usuário logado
 func BuscarCredenciais(c echo.Context) error {
-	usuarioId, erro := security.ExtrairUsuarioID(c)
+	usuarioId, erro := auth.ExtrairUsuarioID(c)
 	if erro != nil {
 		return c.JSON(http.StatusUnauthorized, erro)
 	}
@@ -160,7 +160,7 @@ func AtualizarCredencial(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, erro)
 	}
 
-	usuarioId, erro := security.ExtrairUsuarioID(c)
+	usuarioId, erro := auth.ExtrairUsuarioID(c)
 	if erro != nil {
 		return c.JSON(http.StatusUnauthorized, erro)
 	}
@@ -226,7 +226,7 @@ func DeletarCredencial(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, erro)
 	}
 
-	usuarioId, erro := security.ExtrairUsuarioID(c)
+	usuarioId, erro := auth.ExtrairUsuarioID(c)
 	if erro != nil {
 		return c.JSON(http.StatusUnauthorized, erro)
 	}

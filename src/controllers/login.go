@@ -2,10 +2,12 @@ package controllers
 
 import (
 	"net/http"
+
 	"safePasswordApi/src/database"
 	"safePasswordApi/src/models"
 	"safePasswordApi/src/repository"
 	"safePasswordApi/src/security"
+	"safePasswordApi/src/security/auth"
 
 	"github.com/labstack/echo/v4"
 )
@@ -35,7 +37,7 @@ func Login(c echo.Context) error {
 	}
 
 	var login models.Login
-	login.Token, erro = security.CriarTokenJWT(usuarioBanco.ID)
+	login.Token, erro = auth.CriarTokenJWT(usuarioBanco.ID)
 	if erro != nil {
 		return c.JSON(http.StatusInternalServerError, erro.Error())
 	}
