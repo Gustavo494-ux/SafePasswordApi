@@ -2,7 +2,7 @@ package models
 
 import (
 	"errors"
-	"safePasswordApi/src/security"
+	symmetricEncryp "safePasswordApi/src/security/encrypt/symmetrical"
 	"time"
 )
 
@@ -63,19 +63,19 @@ func (credencial *Credencial) formatar(etapa, chave string) error {
 
 func (credencial *Credencial) criptografar(chave string) error {
 	var erro error
-	if credencial.Descricao, erro = security.CriptografarTexto(credencial.Descricao, chave); erro != nil {
+	if credencial.Descricao, erro = symmetricEncryp.EncryptDataAES(credencial.Descricao, chave); erro != nil {
 		return erro
 	}
 
-	if credencial.SiteUrl, erro = security.CriptografarTexto(credencial.SiteUrl, chave); erro != nil {
+	if credencial.SiteUrl, erro = symmetricEncryp.EncryptDataAES(credencial.SiteUrl, chave); erro != nil {
 		return erro
 	}
 
-	if credencial.Login, erro = security.CriptografarTexto(credencial.Login, chave); erro != nil {
+	if credencial.Login, erro = symmetricEncryp.EncryptDataAES(credencial.Login, chave); erro != nil {
 		return erro
 	}
 
-	if credencial.Senha, erro = security.CriptografarTexto(credencial.Senha, chave); erro != nil {
+	if credencial.Senha, erro = symmetricEncryp.EncryptDataAES(credencial.Senha, chave); erro != nil {
 		return erro
 	}
 
@@ -84,19 +84,19 @@ func (credencial *Credencial) criptografar(chave string) error {
 
 func (credencial *Credencial) descriptografar(chave string) error {
 	var erro error
-	if credencial.Descricao, erro = security.DescriptografarTexto(credencial.Descricao, chave); erro != nil {
+	if credencial.Descricao, erro = symmetricEncryp.EncryptDataAES(credencial.Descricao, chave); erro != nil {
 		return erro
 	}
 
-	if credencial.SiteUrl, erro = security.DescriptografarTexto(credencial.SiteUrl, chave); erro != nil {
+	if credencial.SiteUrl, erro = symmetricEncryp.EncryptDataAES(credencial.SiteUrl, chave); erro != nil {
 		return erro
 	}
 
-	if credencial.Login, erro = security.DescriptografarTexto(credencial.Login, chave); erro != nil {
+	if credencial.Login, erro = symmetricEncryp.EncryptDataAES(credencial.Login, chave); erro != nil {
 		return erro
 	}
 
-	if credencial.Senha, erro = security.DescriptografarTexto(credencial.Senha, chave); erro != nil {
+	if credencial.Senha, erro = symmetricEncryp.EncryptDataAES(credencial.Senha, chave); erro != nil {
 		return erro
 	}
 

@@ -3,7 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
-	"safePasswordApi/src/security"
+	hashEncrpt "safePasswordApi/src/security/encrypt/hash"
 	"strconv"
 	"strings"
 	"time"
@@ -56,7 +56,7 @@ func (usuario *Usuario) formatar(etapa string) error {
 	usuario.Email = strings.TrimSpace(usuario.Email)
 
 	if etapa == "cadastro" {
-		senhaHash, erro := security.GerarHash(usuario.Senha)
+		senhaHash, erro := hashEncrpt.GenerateSHA512(usuario.Senha)
 		if erro != nil {
 			return erro
 		}
@@ -67,7 +67,7 @@ func (usuario *Usuario) formatar(etapa string) error {
 }
 
 func (usuario *Usuario) GerarChaveDeCodificacaoSimetrica() ([]byte, error) {
-	idHash, erro := security.GerarHash(strconv.FormatUint(usuario.ID, 10))
+	idHash, erro := hashEncrpt.GenerateSHA512(strconv.FormatUint(usuario.ID, 10))
 	if erro != nil {
 		return []byte{}, erro
 	}
@@ -76,13 +76,13 @@ func (usuario *Usuario) GerarChaveDeCodificacaoSimetrica() ([]byte, error) {
 	if len(usuario.Senha) == 128 {
 		senhaHash = usuario.Senha
 	} else {
-		senhaHash, erro = security.GerarHash(usuario.Senha)
+		senhaHash, erro = hashEncrpt.GenerateSHA512(usuario.Senha)
 		if erro != nil {
 			return []byte{}, erro
 		}
 	}
 
-	chaveDeCodificacao, erro := security.GerarHash(fmt.Sprintf(idHash, usuario.ID, senhaHash))
+	chaveDeCodificacao, erro := hashEncrpt.GenerateSHA512(fmt.Sprintf(idHash, usuario.ID, senhaHash))
 	if erro != nil {
 		return []byte{}, erro
 	}

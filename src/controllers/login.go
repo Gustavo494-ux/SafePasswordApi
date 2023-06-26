@@ -5,9 +5,10 @@ import (
 
 	"safePasswordApi/src/database"
 	"safePasswordApi/src/models"
+
 	"safePasswordApi/src/repository"
-	"safePasswordApi/src/security"
 	"safePasswordApi/src/security/auth"
+	hashEncryp "safePasswordApi/src/security/encrypt/hash"
 
 	"github.com/labstack/echo/v4"
 )
@@ -32,7 +33,7 @@ func Login(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, erro.Error())
 	}
 
-	if erro = security.CompararHash(usuarioBanco.Senha, usuario.Senha); erro != nil {
+	if erro = hashEncryp.CompareSHA512(usuarioBanco.Senha, usuario.Senha); erro != nil {
 		return c.JSON(http.StatusInternalServerError, erro.Error())
 	}
 
