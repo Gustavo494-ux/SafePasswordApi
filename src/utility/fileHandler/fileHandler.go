@@ -3,7 +3,6 @@ package fileHandler
 import (
 	"io/ioutil"
 	"os"
-
 )
 
 // CreateFile cria um novo arquivo com o nome especificado

@@ -1,4 +1,4 @@
-package fileHandler
+package fileHandler_test
 
 import (
 	"io/ioutil"
