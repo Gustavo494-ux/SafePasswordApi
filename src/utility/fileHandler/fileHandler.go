@@ -1,4 +1,4 @@
-package Utility
+package fileHandler
 
 import (
 	"io/ioutil"
