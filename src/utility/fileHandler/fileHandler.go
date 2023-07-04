@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
 // CreateFile cria um novo arquivo com o nome especificado
@@ -97,17 +98,23 @@ func CreateDirectory(path string) error {
 
 // GetFileInfo returns information about a file or directory specified by the given path.
 func GetFileInfo(path string) (os.FileInfo, error) {
+	// Convert the path to an absolute path if it is relative
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return nil, fmt.Errorf("error resolving absolute path: %v", err)
+	}
+
 	// Check if the file or directory exists
-	_, err := os.Stat(path)
+	_, err = os.Stat(absPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, nil
+			return nil, nil // Return nil when the directory is not found
 		}
 		return nil, fmt.Errorf("error getting file info: %v", err)
 	}
 
 	// Retrieve the file info
-	fileInfo, err := os.Stat(path)
+	fileInfo, err := os.Stat(absPath)
 	if err != nil {
 		return nil, fmt.Errorf("error getting file info: %v", err)
 	}

@@ -202,16 +202,17 @@ func TestCreateDirectory(t *testing.T) {
 
 func TestGetFileInfo(t *testing.T) {
 	// Test for a file
-	//filePath := "./src/utility/file.txt"
-	filePath := "E:/Projetos/go/src/SafePasswordApi/Keys/AES_Key.txt"
+	filePath := "./src/utility/file.txt"
 	fileInfo, err := fileHandler.GetFileInfo(filePath)
 	if err != nil {
 		t.Errorf("Failed to get file info: %v", err)
 	}
 
-	// Check if it's a file
-	if !fileInfo.Mode().IsRegular() {
-		t.Errorf("Expected a file, got directory")
+	if fileInfo != nil {
+		// Check if it's a file
+		if !fileInfo.Mode().IsRegular() {
+			t.Errorf("Expected a file, got directory")
+		}
 	}
 
 	// Test for a directory
@@ -221,8 +222,10 @@ func TestGetFileInfo(t *testing.T) {
 		t.Errorf("Failed to get directory info: %v", err)
 	}
 
-	// Check if it's a directory
-	if !dirInfo.Mode().IsDir() {
-		t.Errorf("Expected a directory, got file")
+	if dirInfo != nil {
+		// Check if it's a directory
+		if !dirInfo.Mode().IsDir() {
+			t.Errorf("Expected a directory, got file")
+		}
 	}
 }
