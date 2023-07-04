@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"safePasswordApi/src/utility/fileHandler"
+	"strings"
 	"testing"
 )
 
@@ -164,5 +165,64 @@ func TestGetFileList(t *testing.T) {
 	// Check if there are no extra files in the returned file list
 	if len(fileList) != len(testFiles) {
 		t.Errorf("Number of returned files is different than expected. Expected: %d, Returned: %d", len(testFiles), len(fileList))
+	}
+}
+
+func TestCreateDirectory(t *testing.T) {
+	// Specify the base path for the new directories
+	basePath := "./src/utility/teste"
+
+	// Create a slice of folder names
+	folders := []string{"folder1", "folder2", "folder3", "folder4", "folder5", "folder6", "folder7", "folder8", "folder9", "folder10"}
+
+	// Slice to store paths of created directories
+	createdDirectories := []string{}
+
+	// Iterate over the folders slice
+	for _, folder := range folders {
+		// Construct the full path for each directory
+		path := filepath.Join(basePath, folder)
+
+		// Call the CreateDirectory function
+		err := fileHandler.CreateDirectory(path)
+		if err != nil {
+			t.Errorf("Failed to create directory: %v", err)
+		} else {
+			// Append the path to the created directories slice
+			createdDirectories = append(createdDirectories, path)
+		}
+	}
+
+	sliceBasePath := strings.Split(basePath, "/")
+	err := os.RemoveAll("./" + sliceBasePath[1])
+	if err != nil {
+		t.Errorf("Failed to remove directory: %v", err)
+	}
+}
+
+func TestGetFileInfo(t *testing.T) {
+	// Test for a file
+	//filePath := "./src/utility/file.txt"
+	filePath := "E:/Projetos/go/src/SafePasswordApi/Keys/AES_Key.txt"
+	fileInfo, err := fileHandler.GetFileInfo(filePath)
+	if err != nil {
+		t.Errorf("Failed to get file info: %v", err)
+	}
+
+	// Check if it's a file
+	if !fileInfo.Mode().IsRegular() {
+		t.Errorf("Expected a file, got directory")
+	}
+
+	// Test for a directory
+	dirPath := "./src/utility"
+	dirInfo, err := fileHandler.GetFileInfo(dirPath)
+	if err != nil {
+		t.Errorf("Failed to get directory info: %v", err)
+	}
+
+	// Check if it's a directory
+	if !dirInfo.Mode().IsDir() {
+		t.Errorf("Expected a directory, got file")
 	}
 }

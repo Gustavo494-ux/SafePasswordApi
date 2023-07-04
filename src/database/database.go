@@ -8,7 +8,7 @@ import (
 )
 
 func Conectar() (*sqlx.DB, error) {
-	db, err := sqlx.Open("mysql", configs.StringConexao)
+	db, err := sqlx.Open("mysql", configs.StringConnection)
 	if err != nil {
 		return nil, err
 	}
@@ -17,6 +17,6 @@ func Conectar() (*sqlx.DB, error) {
 }
 
 func TestarConexao() (err error) {
-	_, err = sqlx.Connect("mysql", configs.StringConexao)
+	_, err = sqlx.Connect("mysql", configs.StringConnection)
 	return
 }

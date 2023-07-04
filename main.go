@@ -9,9 +9,9 @@ import (
 )
 
 func main() {
-	configs.Carregar()
+	configs.InitializeConfigurations()
 	fmt.Println("Rodando API!")
 
 	r := router.Gerar()
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", configs.Porta), r))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", configs.Port), r))
 }

@@ -1,6 +1,7 @@
 package fileHandler
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 )
@@ -83,4 +84,33 @@ func GetFileList(directory string) ([]string, error) {
 	}
 
 	return fileList, nil
+}
+
+// CreateDirectory creates a directory at the specified path
+func CreateDirectory(path string) error {
+	err := os.MkdirAll(path, 0755)
+	if err != nil {
+		return fmt.Errorf("error creating directory: %v", err)
+	}
+	return nil
+}
+
+// GetFileInfo returns information about a file or directory specified by the given path.
+func GetFileInfo(path string) (os.FileInfo, error) {
+	// Check if the file or directory exists
+	_, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("error getting file info: %v", err)
+	}
+
+	// Retrieve the file info
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return nil, fmt.Errorf("error getting file info: %v", err)
+	}
+
+	return fileInfo, nil
 }
