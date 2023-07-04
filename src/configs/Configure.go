@@ -34,6 +34,7 @@ func InitializeConfigurations() {
 func loadOrCreateKeys() {
 	loadOrCreateAESKey()
 	loadOrCreateRSAPrivateKey()
+	loadOrCreateRSAPublicKey()
 }
 
 // loadEnvironmentVariables initializes the environment variables
@@ -152,7 +153,7 @@ func loadOrCreateRSAPrivateKey() {
 		}
 	}
 
-	RSAPrivateKey, err := fileHandler.OpenFile(RSAPrivateKeyPath)
+	RSAPrivateKey, err = fileHandler.OpenFile(RSAPrivateKeyPath)
 	if err != nil {
 		log.Fatal("Error opening file: ", err)
 	}
@@ -184,4 +185,78 @@ func loadOrCreateRSAPrivateKey() {
 			log.Fatal("Invalid AES key, please check: ", RSAPrivateKeyPath)
 		}
 	}
+
+	RSAPrivateKey = strings.Replace(RSAPrivateKey, "-----BEGIN RSA PRIVATE KEY-----", "", -1)
+	RSAPrivateKey = strings.Replace(RSAPrivateKey, "-----END RSA PRIVATE KEY-----", "", -1)
+	RSAPrivateKey = strings.Replace(RSAPrivateKey, "\n", "", -1)
+}
+
+func loadOrCreateRSAPublicKey() {
+	dirPath := strings.Split(RSAPublicKeyPath, "/")
+	dirPath = append(dirPath[:len(dirPath)-1], dirPath[len(dirPath):]...)
+	dirPathCreate := ""
+	for i, dir := range dirPath {
+		if i > 0 {
+			dirPathCreate += "/"
+		}
+		dirPathCreate += dir
+	}
+
+	dirInfo, err := fileHandler.GetFileInfo(dirPathCreate)
+	if err != nil {
+		log.Fatal("Error getting directory info: ", err)
+	}
+	if dirInfo == nil {
+		err = fileHandler.CreateDirectory(dirPathCreate)
+		if err != nil {
+			log.Fatal("Error creating directory: ", err)
+		}
+	}
+
+	fileInfo, err := fileHandler.GetFileInfo(RSAPublicKeyPath)
+	if err != nil {
+		log.Fatal("Error getting file info: ", err)
+	}
+	if fileInfo == nil {
+		err = fileHandler.CreateFile(RSAPublicKeyPath)
+		if err != nil {
+			log.Fatal("Error creating file: ", err)
+		}
+	}
+
+	RSAPublicKey, err = fileHandler.OpenFile(RSAPublicKeyPath)
+	if err != nil {
+		log.Fatal("Error opening file: ", err)
+	}
+
+	err = asymmetrical.ValidatePublicKey(RSAPublicKey)
+	if err != nil {
+		PublicKey, err := asymmetrical.GeneratePublicKey(RSAPrivateKey)
+		if err != nil {
+			log.Fatal("Error generating RSA public KEY, please check: ", RSAPublicKeyPath)
+		}
+
+		RSAPublicKey, err := asymmetrical.ExportPublicKey(PublicKey)
+		if err != nil {
+			log.Fatal("Error generating RSA public KEY, please check: ", RSAPublicKeyPath)
+		}
+
+		err = fileHandler.WriteFile(RSAPublicKeyPath, RSAPublicKey)
+		if err != nil {
+			log.Fatal("Invalid RSA public KEY, please check: ", RSAPublicKeyPath)
+		}
+
+		RSAPublicKey, err = fileHandler.OpenFile(RSAPublicKeyPath)
+		if err != nil {
+			log.Fatal("Error opening file: ", err)
+		}
+
+		err = asymmetrical.ValidatePublicKey(RSAPublicKey)
+		if err != nil {
+			log.Fatal("Invalid RSA public KEY, please check: ", RSAPublicKeyPath)
+		}
+	}
+	RSAPublicKey = strings.Replace(RSAPublicKey, "-----BEGIN PUBLIC KEY-----", "", -1)
+	RSAPublicKey = strings.Replace(RSAPublicKey, "-----END PUBLIC KEY-----", "", -1)
+	RSAPublicKey = strings.Replace(RSAPublicKey, "\n", "", -1)
 }

@@ -1,7 +1,6 @@
 package hashEncrpt_test
 
 import (
-	"fmt"
 	hashEncrpt "safePasswordApi/src/security/encrypt/hash"
 	"testing"
 )
@@ -9,7 +8,6 @@ import (
 func TestGenerateSHA512(t *testing.T) {
 	data := "password123"
 	hash, err := hashEncrpt.GenerateSHA512(data)
-	fmt.Println(hash)
 	if err != nil {
 		t.Errorf("Error generating SHA512 hash: %v", err)
 	}

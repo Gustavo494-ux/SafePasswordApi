@@ -66,7 +66,15 @@ func TestGeneratePublicKey(t *testing.T) {
 		t.Fatalf("Error generating private key: %v", err)
 	}
 
-	publicKey := asymmetrical.GeneratePublicKey(privateKey)
+	RSAPrivateKey, err := asymmetrical.ExportPrivateKey(privateKey)
+	if err != nil {
+		t.Fatalf("Error generating RSA private key, please check: %v", err)
+	}
+
+	publicKey, err := asymmetrical.GeneratePublicKey(RSAPrivateKey)
+	if err != nil {
+		t.Fatalf("Error generating RSA public key, please check: %v", err)
+	}
 
 	if publicKey == nil {
 		t.Error("Public key should not be nil")
@@ -89,7 +97,15 @@ func TestExportPublicKey(t *testing.T) {
 		t.Fatalf("Error generating private key: %v", err)
 	}
 
-	publicKey := asymmetrical.GeneratePublicKey(privateKey)
+	RSAPrivateKey, err := asymmetrical.ExportPrivateKey(privateKey)
+	if err != nil {
+		t.Fatalf("Error generating RSA private key, please check: %v", err)
+	}
+
+	publicKey, err := asymmetrical.GeneratePublicKey(RSAPrivateKey)
+	if err != nil {
+		t.Fatalf("Error generating RSA public key, please check: %v", err)
+	}
 
 	publicKeyPEM, err := asymmetrical.ExportPublicKey(publicKey)
 	if err != nil {
@@ -130,7 +146,17 @@ func TestEncryptAndDecryptRSA(t *testing.T) {
 		t.Fatalf("Error generating private key: %v", err)
 	}
 
-	publicKey := asymmetrical.GeneratePublicKey(privateKey)
+	RSAPrivateKey, err := asymmetrical.ExportPrivateKey(privateKey)
+	if err != nil {
+		t.Fatalf("error generating rsa private key, please check: %v", err)
+	}
+
+	publicKey, err := asymmetrical.GeneratePublicKey(RSAPrivateKey)
+	if err != nil {
+		t.Fatalf("error generating rsa public key, please check: %v", err)
+	}
+
+	//publicKey := asymmetrical.GeneratePublicKey(privateKey)
 
 	data := []byte("secret data")
 
