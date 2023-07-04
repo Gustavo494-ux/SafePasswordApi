@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"safePasswordApi/src/security/encrypt/asymmetrical"
 	"safePasswordApi/src/utility/fileHandler"
 	"strconv"
 	"strings"
@@ -27,6 +28,12 @@ var (
 func InitializeConfigurations() {
 	loadEnvironmentVariables()
 	loadOrCreateKeys()
+}
+
+// loadOrCreateKeys loads and uses keys or creates keys used in project encryption
+func loadOrCreateKeys() {
+	loadOrCreateAESKey()
+	loadOrCreateRSAPrivateKey()
 }
 
 // loadEnvironmentVariables initializes the environment variables
@@ -54,11 +61,6 @@ func loadEnvironmentVariables() {
 	RSAPrivateKeyPath = os.Getenv("RSA_PRIVATE_KEY_PATH")
 	RSAPublicKeyPath = os.Getenv("RSA_PUBLIC_KEY_PATH")
 	AESKeyPath = os.Getenv("AES_KEY_PATH")
-}
-
-// loadOrCreateKeys loads and uses keys or creates keys used in project encryption
-func loadOrCreateKeys() {
-	loadOrCreateAESKey()
 }
 
 func loadOrCreateAESKey() {
@@ -114,5 +116,72 @@ func loadOrCreateAESKey() {
 
 	if AESKey == "" {
 		log.Fatal("Invalid AES key, please check: ", AESKeyPath)
+	}
+}
+
+func loadOrCreateRSAPrivateKey() {
+	dirPath := strings.Split(RSAPrivateKeyPath, "/")
+	dirPath = append(dirPath[:len(dirPath)-1], dirPath[len(dirPath):]...)
+	dirPathCreate := ""
+	for i, dir := range dirPath {
+		if i > 0 {
+			dirPathCreate += "/"
+		}
+		dirPathCreate += dir
+	}
+
+	dirInfo, err := fileHandler.GetFileInfo(dirPathCreate)
+	if err != nil {
+		log.Fatal("Error getting directory info: ", err)
+	}
+	if dirInfo == nil {
+		err = fileHandler.CreateDirectory(dirPathCreate)
+		if err != nil {
+			log.Fatal("Error creating directory: ", err)
+		}
+	}
+
+	fileInfo, err := fileHandler.GetFileInfo(RSAPrivateKeyPath)
+	if err != nil {
+		log.Fatal("Error getting file info: ", err)
+	}
+	if fileInfo == nil {
+		err = fileHandler.CreateFile(RSAPrivateKeyPath)
+		if err != nil {
+			log.Fatal("Error creating file: ", err)
+		}
+	}
+
+	RSAPrivateKey, err := fileHandler.OpenFile(RSAPrivateKeyPath)
+	if err != nil {
+		log.Fatal("Error opening file: ", err)
+	}
+
+	err = asymmetrical.ValidatePrivateKey(RSAPrivateKey)
+	if err != nil {
+		PrivateKey, err := asymmetrical.GeneratePrivateKey(2048)
+		if err != nil {
+			log.Fatal("Error generating RSA private key, please check: ", RSAPrivateKeyPath)
+		}
+
+		RSAPrivateKey, err := asymmetrical.ExportPrivateKey(PrivateKey)
+		if err != nil {
+			log.Fatal("Error generating RSA private key, please check: ", RSAPrivateKeyPath)
+		}
+
+		err = fileHandler.WriteFile(RSAPrivateKeyPath, RSAPrivateKey)
+		if err != nil {
+			log.Fatal("Invalid AES key, please check: ", RSAPrivateKeyPath)
+		}
+
+		RSAPrivateKey, err = fileHandler.OpenFile(RSAPrivateKeyPath)
+		if err != nil {
+			log.Fatal("Error opening file: ", err)
+		}
+
+		err = asymmetrical.ValidatePrivateKey(RSAPrivateKey)
+		if err != nil {
+			log.Fatal("Invalid AES key, please check: ", RSAPrivateKeyPath)
+		}
 	}
 }
