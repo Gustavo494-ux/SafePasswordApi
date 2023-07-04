@@ -5,12 +5,13 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
+	"math/big"
+	"safePasswordApi/src/security/encrypt/asymmetrical"
 	"testing"
 )
 
 func TestGeneratePrivateKey(t *testing.T) {
-	privateKey, err := GeneratePrivateKey(2048)
+	privateKey, err := asymmetrical.GeneratePrivateKey(2048)
 	if err != nil {
 		t.Errorf("Error generating private key: %v", err)
 	}
@@ -27,12 +28,12 @@ func TestGeneratePrivateKey(t *testing.T) {
 }
 
 func TestExportPrivateKey(t *testing.T) {
-	privateKey, err := GeneratePrivateKey(2048)
+	privateKey, err := asymmetrical.GeneratePrivateKey(2048)
 	if err != nil {
 		t.Fatalf("Error generating private key: %v", err)
 	}
 
-	privateKeyPEM, err := ExportPrivateKey(privateKey)
+	privateKeyPEM, err := asymmetrical.ExportPrivateKey(privateKey)
 	if err != nil {
 		t.Errorf("Error exporting private key: %v", err)
 	}
@@ -60,12 +61,12 @@ func TestExportPrivateKey(t *testing.T) {
 }
 
 func TestGeneratePublicKey(t *testing.T) {
-	privateKey, err := GeneratePrivateKey(2048)
+	privateKey, err := asymmetrical.GeneratePrivateKey(2048)
 	if err != nil {
 		t.Fatalf("Error generating private key: %v", err)
 	}
 
-	publicKey := GeneratePublicKey(privateKey)
+	publicKey := asymmetrical.GeneratePublicKey(privateKey)
 
 	if publicKey == nil {
 		t.Error("Public key should not be nil")
@@ -83,14 +84,14 @@ func TestGeneratePublicKey(t *testing.T) {
 }
 
 func TestExportPublicKey(t *testing.T) {
-	privateKey, err := GeneratePrivateKey(2048)
+	privateKey, err := asymmetrical.GeneratePrivateKey(2048)
 	if err != nil {
 		t.Fatalf("Error generating private key: %v", err)
 	}
 
-	publicKey := GeneratePublicKey(privateKey)
+	publicKey := asymmetrical.GeneratePublicKey(privateKey)
 
-	publicKeyPEM, err := ExportPublicKey(publicKey)
+	publicKeyPEM, err := asymmetrical.ExportPublicKey(publicKey)
 	if err != nil {
 		t.Errorf("Error exporting public key: %v", err)
 	}
@@ -124,21 +125,21 @@ func TestExportPublicKey(t *testing.T) {
 }
 
 func TestEncryptAndDecryptRSA(t *testing.T) {
-	privateKey, err := GeneratePrivateKey(2048)
+	privateKey, err := asymmetrical.GeneratePrivateKey(2048)
 	if err != nil {
 		t.Fatalf("Error generating private key: %v", err)
 	}
 
-	publicKey := GeneratePublicKey(privateKey)
+	publicKey := asymmetrical.GeneratePublicKey(privateKey)
 
 	data := []byte("secret data")
 
-	cipherText, err := EncryptRSA(data, publicKey)
+	cipherText, err := asymmetrical.EncryptRSA(data, publicKey)
 	if err != nil {
 		t.Errorf("Error encrypting: %v", err)
 	}
 
-	decryptedData, err := DecryptRSA(cipherText, privateKey)
+	decryptedData, err := asymmetrical.DecryptRSA(cipherText, privateKey)
 	if err != nil {
 		t.Errorf("Error decrypting: %v", err)
 	}
@@ -148,79 +149,122 @@ func TestEncryptAndDecryptRSA(t *testing.T) {
 	}
 }
 
-func GeneratePrivateKey(bits int) (*rsa.PrivateKey, error) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, bits)
+func TestValidatePrivateKey_ValidPrivateKey(t *testing.T) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
-		return nil, err
-	}
-	return privateKey, nil
-}
-
-func ExportPrivateKey(privateKey *rsa.PrivateKey) (string, error) {
-	if privateKey == nil {
-		return "", errors.New("private key is nil")
+		t.Fatalf("Failed to generate private key: %v", err)
 	}
 
-	derBytes := x509.MarshalPKCS1PrivateKey(privateKey)
-	block := &pem.Block{
+	privateKeyPEM := pem.EncodeToMemory(&pem.Block{
 		Type:  "RSA PRIVATE KEY",
-		Bytes: derBytes,
-	}
+		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+	})
 
-	privateKeyPEM := pem.EncodeToMemory(block)
-	return string(privateKeyPEM), nil
-}
-
-func ExportPublicKey(publicKey *rsa.PublicKey) (string, error) {
-	if publicKey == nil {
-		return "", errors.New("public key is nil")
-	}
-
-	derBytes, err := x509.MarshalPKIXPublicKey(publicKey)
+	err = asymmetrical.ValidatePrivateKey(string(privateKeyPEM))
 	if err != nil {
-		return "", err
+		t.Errorf("Expected private key to be valid, but got error: %v", err)
 	}
-
-	block := &pem.Block{
-		Type:  "PUBLIC KEY",
-		Bytes: derBytes,
-	}
-
-	publicKeyPEM := pem.EncodeToMemory(block)
-	return string(publicKeyPEM), nil
 }
 
-func GeneratePublicKey(privateKey *rsa.PrivateKey) *rsa.PublicKey {
-	if privateKey == nil {
-		return nil
+func TestValidatePrivateKey_InvalidPrivateKey(t *testing.T) {
+	// Creating an invalid private key by explicitly setting a factor to zero
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatalf("Failed to generate private key: %v", err)
+	}
+
+	// Set a factor to zero to make the private key invalid
+	privateKey.Primes[0] = big.NewInt(0)
+
+	privateKeyPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+	})
+
+	err = asymmetrical.ValidatePrivateKey(string(privateKeyPEM))
+	if err == nil {
+		t.Error("Expected private key to be invalid, but it was considered valid")
+	} else {
+		t.Logf("Expected error: %v", err)
+	}
+}
+
+func TestValidatePublicKey_ValidPublicKey(t *testing.T) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatalf("Failed to generate private key: %v", err)
 	}
 
 	publicKey := &privateKey.PublicKey
-	return publicKey
+
+	publicKeyBytes, err := x509.MarshalPKIXPublicKey(publicKey)
+	if err != nil {
+		t.Fatalf("Failed to marshal public key: %v", err)
+	}
+
+	publicKeyPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: publicKeyBytes,
+	})
+
+	err = asymmetrical.ValidatePublicKey(string(publicKeyPEM))
+	if err != nil {
+		t.Errorf("Expected public key to be valid, got error: %v", err)
+	}
 }
 
-func EncryptRSA(data []byte, publicKey *rsa.PublicKey) ([]byte, error) {
-	if publicKey == nil {
-		return nil, errors.New("public key is nil")
+func TestValidatePublicKey_InvalidPublicKey(t *testing.T) {
+	// Invalid public key with null modulus (N)
+	publicKey := &rsa.PublicKey{
+		N: nil,
+		E: 65537, // Valid exponent (E)
 	}
 
-	cipherText, err := rsa.EncryptPKCS1v15(rand.Reader, publicKey, data)
-	if err != nil {
-		return nil, err
+	publicKeyPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: x509.MarshalPKCS1PublicKey(publicKey),
+	})
+
+	err := asymmetrical.ValidatePublicKey(string(publicKeyPEM))
+	if err == nil {
+		t.Error("Expected public key to be invalid, but it was considered valid")
+	} else {
+		t.Logf("Expected error: %v", err)
 	}
 
-	return cipherText, nil
-}
-
-func DecryptRSA(cipherText []byte, privateKey *rsa.PrivateKey) ([]byte, error) {
-	if privateKey == nil {
-		return nil, errors.New("private key is nil")
+	// Invalid public key with invalid exponent (E)
+	publicKey = &rsa.PublicKey{
+		N: big.NewInt(123456789), // Valid modulus (N)
+		E: 1,                     // Invalid exponent (E)
 	}
 
-	data, err := rsa.DecryptPKCS1v15(rand.Reader, privateKey, cipherText)
-	if err != nil {
-		return nil, err
+	publicKeyPEM = pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: x509.MarshalPKCS1PublicKey(publicKey),
+	})
+
+	err = asymmetrical.ValidatePublicKey(string(publicKeyPEM))
+	if err == nil {
+		t.Error("Expected public key to be invalid, but it was considered valid")
+	} else {
+		t.Logf("Expected error: %v", err)
 	}
 
-	return data, nil
+	// Invalid public key with negative modulus (N)
+	publicKey = &rsa.PublicKey{
+		N: big.NewInt(-123456789), // Invalid modulus (negative N)
+		E: 65537,                  // Valid exponent (E)
+	}
+
+	publicKeyPEM = pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: x509.MarshalPKCS1PublicKey(publicKey),
+	})
+
+	err = asymmetrical.ValidatePublicKey(string(publicKeyPEM))
+	if err == nil {
+		t.Error("Expected public key to be invalid, but it was considered valid")
+	} else {
+		t.Logf("Expected error: %v", err)
+	}
 }

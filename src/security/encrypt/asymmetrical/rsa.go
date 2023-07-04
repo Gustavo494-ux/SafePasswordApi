@@ -6,6 +6,8 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"fmt"
+	"math/big"
 )
 
 func GeneratePrivateKey(bits int) (*rsa.PrivateKey, error) {
@@ -83,4 +85,72 @@ func DecryptRSA(cipherText []byte, privateKey *rsa.PrivateKey) ([]byte, error) {
 	}
 
 	return data, nil
+}
+
+func ValidatePrivateKey(privateKeyString string) error {
+	privateKeyBytes := []byte(privateKeyString)
+
+	// Parse the private key from the string
+	block, _ := pem.Decode(privateKeyBytes)
+	if block == nil {
+		return errors.New("failed to parse private key")
+	}
+
+	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return fmt.Errorf("failed to parse private key: %v", err)
+	}
+
+	if privateKey == nil {
+		return errors.New("private key is nil")
+	}
+
+	err = privateKey.Validate()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ValidatePublicKey(publicKeyString string) error {
+	publicKeyBytes := []byte(publicKeyString)
+
+	// Parse the public key from the string
+	block, _ := pem.Decode(publicKeyBytes)
+	if block == nil {
+		return errors.New("failed to parse public key")
+	}
+
+	publicKey, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return fmt.Errorf("failed to parse public key: %v", err)
+	}
+
+	rsaPublicKey, ok := publicKey.(*rsa.PublicKey)
+	if !ok {
+		return errors.New("invalid public key type")
+	}
+
+	// Check if the exponent is valid
+	if rsaPublicKey.E < 2 {
+		return errors.New("invalid public key exponent")
+	}
+
+	// Check if the modulus is valid
+	if rsaPublicKey.N == nil || rsaPublicKey.N.Sign() != 1 {
+		return errors.New("invalid public key modulus")
+	}
+
+	// Check if the modulus is odd
+	if rsaPublicKey.N.Bit(0) != 1 {
+		return errors.New("invalid public key modulus (not odd)")
+	}
+
+	// Check if the modulus is greater than the exponent
+	if rsaPublicKey.N.Cmp(big.NewInt(int64(rsaPublicKey.E))) <= 0 {
+		return errors.New("invalid public key modulus (less than or equal to the exponent)")
+	}
+
+	return nil
 }
