@@ -185,10 +185,6 @@ func loadOrCreateRSAPrivateKey() {
 			log.Fatal("Invalid AES key, please check: ", RSAPrivateKeyPath)
 		}
 	}
-
-	RSAPrivateKey = strings.Replace(RSAPrivateKey, "-----BEGIN RSA PRIVATE KEY-----", "", -1)
-	RSAPrivateKey = strings.Replace(RSAPrivateKey, "-----END RSA PRIVATE KEY-----", "", -1)
-	RSAPrivateKey = strings.Replace(RSAPrivateKey, "\n", "", -1)
 }
 
 func loadOrCreateRSAPublicKey() {
@@ -231,6 +227,11 @@ func loadOrCreateRSAPublicKey() {
 
 	err = asymmetrical.ValidatePublicKey(RSAPublicKey)
 	if err != nil {
+		err = asymmetrical.ValidatePrivateKey(RSAPrivateKey)
+		if err != nil {
+			log.Fatal("Invalid RSA Private key, please check: ", RSAPrivateKeyPath)
+		}
+
 		PublicKey, err := asymmetrical.GeneratePublicKey(RSAPrivateKey)
 		if err != nil {
 			log.Fatal("Error generating RSA public KEY, please check: ", RSAPublicKeyPath)
@@ -256,7 +257,4 @@ func loadOrCreateRSAPublicKey() {
 			log.Fatal("Invalid RSA public KEY, please check: ", RSAPublicKeyPath)
 		}
 	}
-	RSAPublicKey = strings.Replace(RSAPublicKey, "-----BEGIN PUBLIC KEY-----", "", -1)
-	RSAPublicKey = strings.Replace(RSAPublicKey, "-----END PUBLIC KEY-----", "", -1)
-	RSAPublicKey = strings.Replace(RSAPublicKey, "\n", "", -1)
 }

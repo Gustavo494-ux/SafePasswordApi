@@ -53,19 +53,19 @@ func ExportPublicKey(publicKey *rsa.PublicKey) (string, error) {
 }
 
 func GeneratePublicKey(privateKeyString string) (*rsa.PublicKey, error) {
-	// Decodificar a chave privada da string PEM
+	// Decode the private key from PEM string
 	block, _ := pem.Decode([]byte(privateKeyString))
 	if block == nil {
 		return nil, errors.New("failed to decode private key")
 	}
 
-	// Parsear a chave privada
+	// Parse the private key
 	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse private key: %v", err)
 	}
 
-	// Obter a chave pública a partir da chave privada
+	// Get the public key from the private key
 	publicKey := &privateKey.PublicKey
 	return publicKey, nil
 }
