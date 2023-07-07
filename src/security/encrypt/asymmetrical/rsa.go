@@ -179,3 +179,36 @@ func ValidatePublicKey(publicKeyString string) error {
 
 	return nil
 }
+
+func ParseRSAPublicKey(publicKeyStr string) (*rsa.PublicKey, error) {
+	block, _ := pem.Decode([]byte(publicKeyStr))
+	if block == nil {
+		return nil, errors.New("failed to parse PEM block containing the public key")
+	}
+
+	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	rsaPublicKey, ok := pub.(*rsa.PublicKey)
+	if !ok {
+		return nil, errors.New("failed to parse RSA public key")
+	}
+
+	return rsaPublicKey, nil
+}
+
+func ParseRSAPrivateKey(privateKeyStr string) (*rsa.PrivateKey, error) {
+	block, _ := pem.Decode([]byte(privateKeyStr))
+	if block == nil {
+		return nil, errors.New("failed to parse PEM block containing the private key")
+	}
+
+	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return priv, nil
+}
