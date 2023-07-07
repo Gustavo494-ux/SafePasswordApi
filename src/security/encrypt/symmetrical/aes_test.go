@@ -62,3 +62,11 @@ func TestDecryptDataAES_InvalidCiphertext(t *testing.T) {
 		t.Error("Expected error when decrypting invalid ciphertext, but got nil")
 	}
 }
+
+func TestGenerateRandomAESKey(t *testing.T) {
+	_, err := symmetricEncryp.GenerateRandomAESKey() // Key size in bytes (256 bits)
+	if err != nil {
+		t.Errorf("Error generating random AES key: %v", err)
+		return
+	}
+}

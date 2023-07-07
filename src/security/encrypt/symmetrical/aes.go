@@ -3,6 +3,7 @@ package symmetricEncryp
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -60,4 +61,15 @@ func reduceKey(key []byte, newLength int) []byte {
 		return key
 	}
 	return append([]byte(nil), newKey[:newLength]...)
+}
+
+func GenerateRandomAESKey() (string, error) {
+	key := make([]byte, 32)
+	_, err := rand.Read(key)
+	if err != nil {
+		return "", err
+	}
+
+	keyString := hex.EncodeToString(key)
+	return keyString, nil
 }

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"safePasswordApi/src/security/encrypt/asymmetrical"
+	symmetricEncryp "safePasswordApi/src/security/encrypt/symmetrical"
 	"safePasswordApi/src/utility/fileHandler"
 	"strconv"
 	"strings"
@@ -99,12 +100,19 @@ func loadOrCreateAESKey() {
 	}
 
 	AESKey, err := fileHandler.OpenFile(AESKeyPath)
+	AESKey, err = fileHandler.OpenFile(AESKeyPath)
 	if err != nil {
 		log.Fatal("Error opening file: ", err)
 	}
 
 	if AESKey == "" {
 		err = fileHandler.WriteFile(AESKeyPath, "temporaryKey")
+		AESKey, err = symmetricEncryp.GenerateRandomAESKey()
+		if err != nil {
+			log.Fatal("Error generate AES KEY, err: ", err)
+		}
+
+		err = fileHandler.WriteFile(AESKeyPath, AESKey)
 		if err != nil {
 			log.Fatal("Invalid AES key, please check: ", AESKeyPath)
 		}
@@ -166,6 +174,7 @@ func loadOrCreateRSAPrivateKey() {
 		}
 
 		RSAPrivateKey, err := asymmetrical.ExportPrivateKey(PrivateKey)
+		RSAPrivateKey, err = asymmetrical.ExportPrivateKey(PrivateKey)
 		if err != nil {
 			log.Fatal("Error generating RSA private key, please check: ", RSAPrivateKeyPath)
 		}
