@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -70,30 +71,45 @@ func GeneratePublicKey(privateKeyString string) (*rsa.PublicKey, error) {
 	return publicKey, nil
 }
 
-func EncryptRSA(data []byte, publicKey *rsa.PublicKey) ([]byte, error) {
+func EncryptRSA(data string, publicKey *rsa.PublicKey) (string, error) {
 	if publicKey == nil {
-		return nil, errors.New("public key is nil")
+		return "", errors.New("public key is nil")
 	}
 
-	cipherText, err := rsa.EncryptPKCS1v15(rand.Reader, publicKey, data)
+	// Convert a string to bytes
+	plainText := []byte(data)
+
+	cipherText, err := rsa.EncryptPKCS1v15(rand.Reader, publicKey, plainText)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return cipherText, nil
+	// Convert the cipher text bytes to a string
+	cipherTextString := base64.StdEncoding.EncodeToString(cipherText)
+
+	return cipherTextString, nil
 }
 
-func DecryptRSA(cipherText []byte, privateKey *rsa.PrivateKey) ([]byte, error) {
+func DecryptRSA(cipherText string, privateKey *rsa.PrivateKey) (string, error) {
 	if privateKey == nil {
-		return nil, errors.New("private key is nil")
+		return "", errors.New("private key is nil")
 	}
 
-	data, err := rsa.DecryptPKCS1v15(rand.Reader, privateKey, cipherText)
+	// Decode the cipher text string to bytes
+	cipherTextBytes, err := base64.StdEncoding.DecodeString(cipherText)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return data, nil
+	data, err := rsa.DecryptPKCS1v15(rand.Reader, privateKey, cipherTextBytes)
+	if err != nil {
+		return "", err
+	}
+
+	// Convert the decrypted data bytes to a string
+	dataString := string(data)
+
+	return dataString, nil
 }
 
 func ValidatePrivateKey(privateKeyString string) error {

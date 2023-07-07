@@ -158,7 +158,7 @@ func TestEncryptAndDecryptRSA(t *testing.T) {
 
 	//publicKey := asymmetrical.GeneratePublicKey(privateKey)
 
-	data := []byte("secret data")
+	data := "secret data"
 
 	cipherText, err := asymmetrical.EncryptRSA(data, publicKey)
 	if err != nil {
