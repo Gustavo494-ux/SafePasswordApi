@@ -98,7 +98,7 @@ func DecryptRSA(cipherText string, privateKey *rsa.PrivateKey) (string, error) {
 	// Decode the cipher text string to bytes
 	cipherTextBytes, err := base64.StdEncoding.DecodeString(cipherText)
 	if err != nil {
-		return "", err
+		return "", errors.New("data not encrypted with RSA")
 	}
 
 	data, err := rsa.DecryptPKCS1v15(rand.Reader, privateKey, cipherTextBytes)
@@ -181,7 +181,9 @@ func ValidatePublicKey(publicKeyString string) error {
 }
 
 func ParseRSAPublicKey(publicKeyStr string) (*rsa.PublicKey, error) {
-	block, _ := pem.Decode([]byte(publicKeyStr))
+	publicKeyByte := []byte(publicKeyStr)
+
+	block, _ := pem.Decode(publicKeyByte)
 	if block == nil {
 		return nil, errors.New("failed to parse PEM block containing the public key")
 	}
@@ -200,7 +202,9 @@ func ParseRSAPublicKey(publicKeyStr string) (*rsa.PublicKey, error) {
 }
 
 func ParseRSAPrivateKey(privateKeyStr string) (*rsa.PrivateKey, error) {
-	block, _ := pem.Decode([]byte(privateKeyStr))
+	privateKeyByte := []byte(privateKeyStr)
+
+	block, _ := pem.Decode(privateKeyByte)
 	if block == nil {
 		return nil, errors.New("failed to parse PEM block containing the private key")
 	}
