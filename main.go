@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	configs.InitializeConfigurations()
+	configs.InitializeConfigurations("./.env")
 	fmt.Println("Rodando API!")
 
 	r := router.Gerar()

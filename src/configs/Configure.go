@@ -26,8 +26,8 @@ var (
 )
 
 // InitializeConfigurations performs the necessary setup for the project to be used
-func InitializeConfigurations() {
-	loadEnvironmentVariables()
+func InitializeConfigurations(Path string) {
+	loadEnvironmentVariables(Path)
 	loadOrCreateKeys()
 }
 
@@ -39,8 +39,8 @@ func loadOrCreateKeys() {
 }
 
 // loadEnvironmentVariables initializes the environment variables
-func loadEnvironmentVariables() {
-	err := godotenv.Load()
+func loadEnvironmentVariables(Path string) {
+	err := godotenv.Load(Path)
 	if err != nil {
 		log.Fatal(err)
 	}
