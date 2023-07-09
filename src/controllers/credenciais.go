@@ -52,7 +52,7 @@ func CreateCredential(c echo.Context) error {
 
 // GetCredential retrieves a Credencial from the database
 func GetCredential(c echo.Context) error {
-	credID, err := strconv.ParseUint(c.Param("credentialID"), 10, 64)
+	credID, err := strconv.ParseUint(c.Param("credentialId"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
@@ -116,7 +116,7 @@ func GetCredentials(c echo.Context) error {
 
 // UpdateCredential updates the information of a Credencial in the database
 func UpdateCredential(c echo.Context) error {
-	credID, err := strconv.ParseUint(c.Param("credentialID"), 10, 64)
+	credID, err := strconv.ParseUint(c.Param("credentialId"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
@@ -177,7 +177,7 @@ func UpdateCredential(c echo.Context) error {
 
 // DeleteCredential deletes a Credencial from the database
 func DeleteCredential(c echo.Context) error {
-	credID, err := strconv.ParseUint(c.Param("credentialID"), 10, 64)
+	credID, err := strconv.ParseUint(c.Param("credentialId"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
