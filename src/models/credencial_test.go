@@ -194,50 +194,33 @@ func TestFormatar_ConsultarDados(t *testing.T) {
 	}
 }
 
-/*
 func TestCriptografarAES(t *testing.T) {
-	credencial := Credencial{
-		Id:        1,
-		UsuarioId: 1,
-		Descricao: "Credencial",
-		SiteUrl:   "https://www.example.com",
-		Login:     "user",
-		Senha:     "senha",
-		CriadoEm:  time.Now(),
+	configs.InitializeConfigurations(Path_DotEnv)
+	var err error
+	var credenciaisSenhaVazia []models.Credencial
+	credenciaisSenhaVazia = credenciais
+	for _, credencial := range credenciaisSenhaVazia {
+		err = credencial.CriptografarAES()
+		if err != nil {
+			t.Errorf("Erro inesperado: %s", err.Error())
+		}
 	}
+}
 
-	err := credencial.criptografarAES()
-
-	if err != nil {
-		t.Errorf("Erro inesperado: %s", err.Error())
+func TestDescriptografarAES(t *testing.T) {
+	configs.InitializeConfigurations(Path_DotEnv)
+	var err error
+	var credenciaisSenhaVazia []models.Credencial
+	credenciaisSenhaVazia = credenciais
+	for _, credencial := range credenciaisSenhaVazia {
+		err = credencial.DescriptografarAES()
+		if err != nil && err.Error() != "unencrypted data using AES 256" {
+			t.Errorf("Erro inesperado: %s", err.Error())
+		}
 	}
-
-	// Verifique se os campos foram criptografados corretamente
-	// (implementar asserções adequadas para verificar os valores criptografados)
 }
 
 /*
-func TestDescriptografarAES(t *testing.T) {
-	credencial := Credencial{
-		Id:        1,
-		UsuarioId: 1,
-		Descricao: "Credencial",
-		SiteUrl:   "https://www.example.com",
-		Login:     "user",
-		Senha:     "senha",
-		CriadoEm:  time.Now(),
-	}
-
-	err := credencial.descriptografarAES()
-
-	if err != nil {
-		t.Errorf("Erro inesperado: %s", err.Error())
-	}
-
-	// Verifique se os campos foram descriptografados corretamente
-	// (implementar asserções adequadas para verificar os valores descriptografados)
-}
-
 func TestCriptografarRSA(t *testing.T) {
 	credencial := Credencial{
 		Id:        1,
@@ -259,6 +242,7 @@ func TestCriptografarRSA(t *testing.T) {
 	// (implementar asserções adequadas para verificar os valores criptografados)
 }
 
+/*
 func TestDescriptografarRSA(t *testing.T) {
 	credencial := Credencial{
 		Id:        1,

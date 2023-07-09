@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
+
 )
 
 var (
@@ -99,14 +100,12 @@ func loadOrCreateAESKey() {
 		}
 	}
 
-	AESKey, err := fileHandler.OpenFile(AESKeyPath)
 	AESKey, err = fileHandler.OpenFile(AESKeyPath)
 	if err != nil {
 		log.Fatal("Error opening file: ", err)
 	}
 
 	if AESKey == "" {
-		err = fileHandler.WriteFile(AESKeyPath, "temporaryKey")
 		AESKey, err = symmetricEncryp.GenerateRandomAESKey()
 		if err != nil {
 			log.Fatal("Error generate AES KEY, err: ", err)
@@ -173,7 +172,6 @@ func loadOrCreateRSAPrivateKey() {
 			log.Fatal("Error generating RSA private key, please check: ", RSAPrivateKeyPath)
 		}
 
-		RSAPrivateKey, err := asymmetrical.ExportPrivateKey(PrivateKey)
 		RSAPrivateKey, err = asymmetrical.ExportPrivateKey(PrivateKey)
 		if err != nil {
 			log.Fatal("Error generating RSA private key, please check: ", RSAPrivateKeyPath)
@@ -181,7 +179,7 @@ func loadOrCreateRSAPrivateKey() {
 
 		err = fileHandler.WriteFile(RSAPrivateKeyPath, RSAPrivateKey)
 		if err != nil {
-			log.Fatal("Invalid AES key, please check: ", RSAPrivateKeyPath)
+			log.Fatal("Invalid RSA Private key, please check: ", RSAPrivateKeyPath)
 		}
 
 		RSAPrivateKey, err = fileHandler.OpenFile(RSAPrivateKeyPath)
@@ -191,7 +189,7 @@ func loadOrCreateRSAPrivateKey() {
 
 		err = asymmetrical.ValidatePrivateKey(RSAPrivateKey)
 		if err != nil {
-			log.Fatal("Invalid AES key, please check: ", RSAPrivateKeyPath)
+			log.Fatal("Invalid RSA Private key, please check: ", RSAPrivateKeyPath)
 		}
 	}
 }
