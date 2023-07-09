@@ -8,6 +8,304 @@ import (
 )
 
 var Path_DotEnv = "./../../.env"
+var credentials = []models.Credencial{
+	{
+		Id:        1,
+		UsuarioId: 1,
+		Descricao: "Credential 1",
+		SiteUrl:   "https://www.example.com",
+		Login:     "user1",
+		Senha:     "password1",
+		CriadoEm:  time.Now(),
+	},
+	{
+		Id:        2,
+		UsuarioId: 1,
+		Descricao: "Credential 2",
+		SiteUrl:   "https://www.example.com",
+		Login:     "user2",
+		Senha:     "password2",
+		CriadoEm:  time.Now(),
+	},
+	{
+		Id:        3,
+		UsuarioId: 2,
+		Descricao: "Credential 3",
+		SiteUrl:   "https://www.example.com",
+		Login:     "user3",
+		Senha:     "password3",
+		CriadoEm:  time.Now(),
+	},
+	{
+		Id:        4,
+		UsuarioId: 2,
+		Descricao: "Credential 4",
+		SiteUrl:   "https://www.example.com",
+		Login:     "user4",
+		Senha:     "password4",
+		CriadoEm:  time.Now(),
+	},
+	{
+		Id:        5,
+		UsuarioId: 3,
+		Descricao: "Credential 5",
+		SiteUrl:   "https://www.example.com",
+		Login:     "user5",
+		Senha:     "password5",
+		CriadoEm:  time.Now(),
+	},
+	{
+		Id:        6,
+		UsuarioId: 3,
+		Descricao: "Credential 6",
+		SiteUrl:   "https://www.example.com",
+		Login:     "user6",
+		Senha:     "password6",
+		CriadoEm:  time.Now(),
+	},
+	{
+		Id:        7,
+		UsuarioId: 4,
+		Descricao: "Credential 7",
+		SiteUrl:   "https://www.example.com",
+		Login:     "user7",
+		Senha:     "password7",
+		CriadoEm:  time.Now(),
+	},
+	{
+		Id:        8,
+		UsuarioId: 4,
+		Descricao: "Credential 8",
+		SiteUrl:   "https://www.example.com",
+		Login:     "user8",
+		Senha:     "password8",
+		CriadoEm:  time.Now(),
+	},
+	{
+		Id:        9,
+		UsuarioId: 5,
+		Descricao: "Credential 9",
+		SiteUrl:   "https://www.example.com",
+		Login:     "user9",
+		Senha:     "password9",
+		CriadoEm:  time.Now(),
+	},
+	{
+		Id:        10,
+		UsuarioId: 5,
+		Descricao: "Credential 10",
+		SiteUrl:   "https://www.example.com",
+		Login:     "user10",
+		Senha:     "password10",
+		CriadoEm:  time.Now(),
+	},
+}
+
+func TestCredencial_Prepare(t *testing.T) {
+	configs.InitializeConfigurations(Path_DotEnv)
+	for _, credential := range credentials {
+		err := credential.Prepare("saveData")
+		if err != nil {
+			t.Fatalf("An error occurred while preparing the credential: %v", err)
+		}
+	}
+}
+
+func TestValidate(t *testing.T) {
+	for _, credential := range credentials {
+		err := credential.Validate()
+
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err.Error())
+		}
+	}
+}
+
+func TestValidate_UsuarioIdZero(t *testing.T) {
+	var err error
+	for _, credential := range credentials {
+		if credential.Id%2 == 1 {
+			credential.UsuarioId = 1
+		} else {
+			credential.UsuarioId = 0
+		}
+
+		err = credential.Validate()
+		if err == nil {
+			if credential.Id%2 == 0 {
+				t.Error("Expected an error, but none returned")
+			}
+		} else if err.Error() != "user is required and cannot be blank" {
+			t.Errorf("Expected error: %s", "user is required and cannot be blank")
+		}
+	}
+}
+
+func TestValidate_SenhaVazia(t *testing.T) {
+	var err error
+	for _, credential := range credentials {
+		if credential.Id%2 == 1 {
+			credential.Senha = ""
+		} else {
+			credential.Senha = "Test"
+		}
+		err = credential.Validate()
+		if err == nil {
+			if credential.Id%2 == 1 {
+				t.Error("Expected an error, but none returned")
+			}
+		} else if err.Error() != "password is required and cannot be blank" {
+			t.Errorf("Expected error: %s", "password is required and cannot be blank")
+		}
+	}
+}
+
+func TestFormat_SaveData(t *testing.T) {
+	configs.InitializeConfigurations(Path_DotEnv)
+	var err error
+	for _, credential := range credentials {
+		err = credential.Format("saveData")
+
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err.Error())
+		}
+	}
+}
+
+func TestFormat_RetrieveData(t *testing.T) {
+	configs.InitializeConfigurations(Path_DotEnv)
+	var err error
+	for _, credential := range credentials {
+		err = credential.Format("retrieveData")
+
+		if err.Error() != "data not encrypted with RSA" {
+			t.Errorf("Error: %v", err)
+		}
+	}
+}
+
+func TestEncryptAES(t *testing.T) {
+	configs.InitializeConfigurations(Path_DotEnv)
+	var err error
+	credentialsWithEmptyPassword := credentials
+	for _, credential := range credentialsWithEmptyPassword {
+		err = credential.EncryptAES()
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err.Error())
+		}
+	}
+}
+
+func TestDecryptAES(t *testing.T) {
+	configs.InitializeConfigurations(Path_DotEnv)
+	var err error
+	for _, credential := range credentials {
+		err = credential.DecryptAES()
+		if err != nil && err.Error() != "unencrypted data using AES 256" {
+			t.Errorf("Unexpected error: %s", err.Error())
+		}
+	}
+}
+
+func TestEncryptDecryptAES(t *testing.T) {
+	configs.InitializeConfigurations(Path_DotEnv)
+	var err error
+
+	// Encrypt credentials
+	credentialsToEncrypt := credentials
+
+	for i := range credentialsToEncrypt {
+		err = credentialsToEncrypt[i].EncryptAES()
+		if err != nil {
+			t.Errorf("Unexpected error while encrypting: %s", err.Error())
+		}
+	}
+
+	// Decrypt credentials
+	for i := range credentialsToEncrypt {
+		err = credentialsToEncrypt[i].DecryptAES()
+		if err != nil {
+			t.Errorf("Unexpected error while decrypting: %s", err.Error())
+		}
+	}
+
+	// Compare original credentials with decrypted ones
+	for i := range credentials {
+		if credentialsToEncrypt[i].Descricao != credentials[i].Descricao ||
+			credentialsToEncrypt[i].SiteUrl != credentials[i].SiteUrl ||
+			credentialsToEncrypt[i].Login != credentials[i].Login ||
+			credentialsToEncrypt[i].Senha != credentials[i].Senha {
+			t.Errorf("Decrypted credential does not match the original")
+		}
+	}
+}
+
+func TestEncryptRSA(t *testing.T) {
+	configs.InitializeConfigurations(Path_DotEnv)
+	var err error
+	for _, credential := range credentials {
+		err = credential.EncryptRSA()
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err.Error())
+		}
+	}
+}
+
+func TestDecryptRSA(t *testing.T) {
+	configs.InitializeConfigurations(Path_DotEnv)
+	var err error
+	for _, credential := range credentials {
+		err = credential.DecryptRSA()
+		if err != nil && err.Error() != "data not encrypted with RSA" {
+			t.Errorf("Unexpected error: %s", err.Error())
+		}
+	}
+}
+
+func TestEncryptDecryptRSA(t *testing.T) {
+	configs.InitializeConfigurations(Path_DotEnv)
+	var err error
+
+	// Encrypt credentials
+	credentialsToEncrypt := credentials
+
+	for i := range credentialsToEncrypt {
+		err = credentialsToEncrypt[i].EncryptRSA()
+		if err != nil {
+			t.Errorf("Unexpected error while encrypting: %s", err.Error())
+		}
+	}
+
+	// Decrypt credentials
+	for i := range credentialsToEncrypt {
+		err = credentialsToEncrypt[i].DecryptRSA()
+		if err != nil {
+			t.Errorf("Unexpected error while decrypting: %s", err.Error())
+		}
+	}
+
+	// Compare original credentials with decrypted ones
+	for i := range credentials {
+		if credentialsToEncrypt[i].Descricao != credentials[i].Descricao ||
+			credentialsToEncrypt[i].SiteUrl != credentials[i].SiteUrl ||
+			credentialsToEncrypt[i].Login != credentials[i].Login ||
+			credentialsToEncrypt[i].Senha != credentials[i].Senha {
+			t.Errorf("Decrypted credential does not match the original")
+		}
+	}
+}
+
+/*
+package models_test
+
+import (
+	"safePasswordApi/src/configs"
+	"safePasswordApi/src/models"
+	"testing"
+	"time"
+)
+
+var Path_DotEnv = "./../../.env"
 var credenciais = []models.Credencial{
 	{
 		Id:        1,
@@ -104,7 +402,7 @@ var credenciais = []models.Credencial{
 func TestCredencial_Preparar(t *testing.T) {
 	configs.InitializeConfigurations(Path_DotEnv)
 	for _, credencial := range credenciais {
-		err := credencial.Preparar("salvarDados", "")
+		err := credencial.Prepare("salvarDados", "")
 		if err != nil {
 			t.Fatalf("ocorreu um erro ao realizar a preparação da credencial, error: %v", err)
 		}
@@ -113,7 +411,7 @@ func TestCredencial_Preparar(t *testing.T) {
 
 func TestValidar(t *testing.T) {
 	for _, credencial := range credenciais {
-		err := credencial.Validar()
+		err := credencial.Validate()
 
 		if err != nil {
 			t.Errorf("Erro inesperado: %s", err.Error())
@@ -123,17 +421,14 @@ func TestValidar(t *testing.T) {
 
 func TestValidar_UsuarioIdZero(t *testing.T) {
 	var err error
-	var credenciaisUsuarioIdZeroUm []models.Credencial
-	credenciaisUsuarioIdZeroUm = credenciais
-	//err := credencial.validar()
-	for _, credencial := range credenciaisUsuarioIdZeroUm {
+	for _, credencial := range credenciais {
 		if credencial.Id%2 == 1 {
 			credencial.UsuarioId = 1
 		} else {
 			credencial.UsuarioId = 0
 		}
 
-		err = credencial.Validar()
+		err = credencial.Validate()
 		if err == nil {
 			if credencial.Id%2 == 0 {
 				t.Error("Esperava-se um erro, mas nenhum foi retornado")
@@ -146,15 +441,13 @@ func TestValidar_UsuarioIdZero(t *testing.T) {
 
 func TestValidar_SenhaVazia(t *testing.T) {
 	var err error
-	var credenciaisSenhaVazia []models.Credencial
-	credenciaisSenhaVazia = credenciais
-	for _, credencial := range credenciaisSenhaVazia {
+	for _, credencial := range credenciais {
 		if credencial.Id%2 == 1 {
 			credencial.Senha = ""
 		} else {
 			credencial.Senha = "Teste"
 		}
-		err = credencial.Validar()
+		err = credencial.Validate()
 		if err == nil {
 			if credencial.Id%2 == 1 {
 				t.Error("Esperava-se um erro, mas nenhum foi retornado")
@@ -163,16 +456,13 @@ func TestValidar_SenhaVazia(t *testing.T) {
 			t.Errorf("Erro esperado: %s", "a senha é obrigatória e não pode estar em branco")
 		}
 	}
-
 }
 
 func TestFormatar_SalvarDados(t *testing.T) {
 	configs.InitializeConfigurations(Path_DotEnv)
 	var err error
-	var credenciaisSenhaVazia []models.Credencial
-	credenciaisSenhaVazia = credenciais
-	for _, credencial := range credenciaisSenhaVazia {
-		err = credencial.Formatar("salvarDados")
+	for _, credencial := range credenciais {
+		err = credencial.Format("salvarDados")
 
 		if err != nil {
 			t.Errorf("Erro inesperado: %s", err.Error())
@@ -183,10 +473,8 @@ func TestFormatar_SalvarDados(t *testing.T) {
 func TestFormatar_ConsultarDados(t *testing.T) {
 	configs.InitializeConfigurations(Path_DotEnv)
 	var err error
-	var credenciaisSenhaVazia []models.Credencial
-	credenciaisSenhaVazia = credenciais
-	for _, credencial := range credenciaisSenhaVazia {
-		err = credencial.Formatar("consultarDados")
+	for _, credencial := range credenciais {
+		err = credencial.Format("consultarDados")
 
 		if err.Error() != "data not encrypted with RSA" {
 			t.Errorf("error: %v", err)
@@ -197,10 +485,9 @@ func TestFormatar_ConsultarDados(t *testing.T) {
 func TestCriptografarAES(t *testing.T) {
 	configs.InitializeConfigurations(Path_DotEnv)
 	var err error
-	var credenciaisSenhaVazia []models.Credencial
-	credenciaisSenhaVazia = credenciais
+	credenciaisSenhaVazia := credenciais
 	for _, credencial := range credenciaisSenhaVazia {
-		err = credencial.CriptografarAES()
+		err = credencial.EncryptAES()
 		if err != nil {
 			t.Errorf("Erro inesperado: %s", err.Error())
 		}
@@ -210,57 +497,100 @@ func TestCriptografarAES(t *testing.T) {
 func TestDescriptografarAES(t *testing.T) {
 	configs.InitializeConfigurations(Path_DotEnv)
 	var err error
-	var credenciaisSenhaVazia []models.Credencial
-	credenciaisSenhaVazia = credenciais
-	for _, credencial := range credenciaisSenhaVazia {
-		err = credencial.DescriptografarAES()
+	for _, credencial := range credenciais {
+		err = credencial.DecryptAES()
 		if err != nil && err.Error() != "unencrypted data using AES 256" {
 			t.Errorf("Erro inesperado: %s", err.Error())
 		}
 	}
 }
 
-/*
+func TestEncryptDecryptAES(t *testing.T) {
+	configs.InitializeConfigurations(Path_DotEnv)
+	var err error
+
+	// Criptografar as credenciais
+	credenciaisParaCriptografar := credenciais
+
+	for i := range credenciaisParaCriptografar {
+		err = credenciaisParaCriptografar[i].EncryptAES()
+		if err != nil {
+			t.Errorf("Erro inesperado ao criptografar: %s", err.Error())
+		}
+	}
+
+	// Descriptografar as credenciais
+	for i := range credenciaisParaCriptografar {
+		err = credenciaisParaCriptografar[i].DecryptAES()
+		if err != nil {
+			t.Errorf("Erro inesperado ao descriptografar: %s", err.Error())
+		}
+	}
+
+	// Comparar as credenciais originais com as descriptografadas
+	for i := range credenciais {
+		if credenciaisParaCriptografar[i].Descricao != credenciais[i].Descricao ||
+			credenciaisParaCriptografar[i].SiteUrl != credenciais[i].SiteUrl ||
+			credenciaisParaCriptografar[i].Login != credenciais[i].Login ||
+			credenciaisParaCriptografar[i].Senha != credenciais[i].Senha {
+			t.Errorf("Credencial descriptografada não corresponde à original")
+		}
+	}
+}
+
 func TestCriptografarRSA(t *testing.T) {
-	credencial := Credencial{
-		Id:        1,
-		UsuarioId: 1,
-		Descricao: "Credencial",
-		SiteUrl:   "https://www.example.com",
-		Login:     "user",
-		Senha:     "senha",
-		CriadoEm:  time.Now(),
+	configs.InitializeConfigurations(Path_DotEnv)
+	var err error
+	for _, credencial := range credenciais {
+		err = credencial.EncryptRSA()
+		if err != nil {
+			t.Errorf("Erro inesperado: %s", err.Error())
+		}
 	}
-
-	err := credencial.criptografarRSA()
-
-	if err != nil {
-		t.Errorf("Erro inesperado: %s", err.Error())
-	}
-
-	// Verifique se os campos foram criptografados corretamente
-	// (implementar asserções adequadas para verificar os valores criptografados)
 }
 
-/*
 func TestDescriptografarRSA(t *testing.T) {
-	credencial := Credencial{
-		Id:        1,
-		UsuarioId: 1,
-		Descricao: "Credencial",
-		SiteUrl:   "https://www.example.com",
-		Login:     "user",
-		Senha:     "senha",
-		CriadoEm:  time.Now(),
+	configs.InitializeConfigurations(Path_DotEnv)
+	var err error
+	for _, credencial := range credenciais {
+		err = credencial.DecryptRSA()
+		if err != nil && err.Error() != "data not encrypted with RSA" {
+			t.Errorf("Erro inesperado: %s", err.Error())
+		}
 	}
-
-	err := credencial.descriptografarRSA()
-
-	if err != nil {
-		t.Errorf("Erro inesperado: %s", err.Error())
-	}
-
-	// Verifique se os campos foram descriptografados corretamente
-	// (implementar asserções adequadas para verificar os valores descriptografados)
 }
+
+func TestEncryptDecryptRSA(t *testing.T) {
+	configs.InitializeConfigurations(Path_DotEnv)
+	var err error
+
+	// Criptografar as credenciais
+	credenciaisParaCriptografar := credenciais
+
+	for i := range credenciaisParaCriptografar {
+		err = credenciaisParaCriptografar[i].EncryptRSA()
+		if err != nil {
+			t.Errorf("Erro inesperado ao criptografar: %s", err.Error())
+		}
+	}
+
+	// Descriptografar as credenciais
+	for i := range credenciaisParaCriptografar {
+		err = credenciaisParaCriptografar[i].DecryptRSA()
+		if err != nil {
+			t.Errorf("Erro inesperado ao descriptografar: %s", err.Error())
+		}
+	}
+
+	// Comparar as credenciais originais com as descriptografadas
+	for i := range credenciais {
+		if credenciaisParaCriptografar[i].Descricao != credenciais[i].Descricao ||
+			credenciaisParaCriptografar[i].SiteUrl != credenciais[i].SiteUrl ||
+			credenciaisParaCriptografar[i].Login != credenciais[i].Login ||
+			credenciaisParaCriptografar[i].Senha != credenciais[i].Senha {
+			t.Errorf("Credencial descriptografada não corresponde à original")
+		}
+	}
+}
+
 */

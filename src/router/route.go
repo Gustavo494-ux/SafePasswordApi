@@ -10,7 +10,7 @@ func Gerar() *echo.Echo {
 	e := echo.New()
 	router.RotasUsuarios(e)
 	router.RotasLogin(e)
-	router.RotasCredenciais(e)
+	router.CredentialRoutes(e)
 
 	return e
 }

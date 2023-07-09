@@ -4,7 +4,7 @@ import (
 	"errors"
 	"safePasswordApi/src/configs"
 	"safePasswordApi/src/security/encrypt/asymmetrical"
-	symmetricEncryp "safePasswordApi/src/security/encrypt/symmetrical"
+	symmetricEncrypt "safePasswordApi/src/security/encrypt/symmetrical"
 	"time"
 )
 
@@ -18,71 +18,54 @@ type Credencial struct {
 	CriadoEm  time.Time `json:"criadoEm,omitempty" db:"criadoem"`
 }
 
-// Preparar vai chamar os métodos para validar e formatar credencial  recebido
-func (credencial *Credencial) Preparar(etapa, chave string) error {
-	if erro := credencial.Validar(); erro != nil {
-		return erro
+func (credencial *Credencial) Prepare(step string) error {
+	if err := credencial.Validate(); err != nil {
+		return err
 	}
 
-	if erro := credencial.Formatar(etapa); erro != nil {
-		return erro
+	if err := credencial.Format(step); err != nil {
+		return err
 	}
+
 	return nil
 }
 
-func (credencial *Credencial) Validar() error {
+func (credencial *Credencial) Validate() error {
 	if credencial.UsuarioId == 0 {
-		return errors.New("usuário é obrigatório e não pode estar em branco")
+		return errors.New("user is required and cannot be blank")
 	}
 
 	if credencial.Senha == "" {
-		return errors.New("a senha é obrigatória e não pode estar em branco")
+		return errors.New("password is required and cannot be blank")
 	}
 
 	return nil
 }
 
-func (credencial *Credencial) Formatar(etapa string) error {
-	var erro error
-	switch etapa {
-	case "salvarDados":
-		{
-			if erro = credencial.Criptografar(); erro != nil {
-				return erro
-			}
+func (credencial *Credencial) Format(step string) error {
+	var err error
+	switch step {
+	case "saveData":
+		if err = credencial.Encrypt(); err != nil {
+			return err
 		}
 
-	case "consultarDados":
-		{
-			if erro = credencial.Descriptografar(); erro != nil {
-				return erro
-			}
+	case "retrieveData":
+		if err = credencial.Decrypt(); err != nil {
+			return err
 		}
-
-	}
-	return nil
-}
-
-func (credencial *Credencial) Criptografar() error {
-	err := credencial.CriptografarAES()
-	if err != nil {
-		return err
-	}
-	err = credencial.CriptografarRSA()
-	if err != nil {
-		return err
 	}
 
 	return nil
 }
 
-func (credencial *Credencial) Descriptografar() error {
-	err := credencial.DescriptografarRSA()
+func (credencial *Credencial) Encrypt() error {
+	err := credencial.EncryptAES()
 	if err != nil {
 		return err
 	}
 
-	err = credencial.DescriptografarAES()
+	err = credencial.EncryptRSA()
 	if err != nil {
 		return err
 	}
@@ -90,95 +73,109 @@ func (credencial *Credencial) Descriptografar() error {
 	return nil
 }
 
-func (credencial *Credencial) CriptografarAES() error {
-	var erro error
-	if credencial.Descricao, erro = symmetricEncryp.EncryptDataAES(credencial.Descricao, configs.AESKey); erro != nil {
-		return erro
+func (credencial *Credencial) Decrypt() error {
+	err := credencial.DecryptRSA()
+	if err != nil {
+		return err
 	}
 
-	if credencial.SiteUrl, erro = symmetricEncryp.EncryptDataAES(credencial.SiteUrl, configs.AESKey); erro != nil {
-		return erro
-	}
-
-	if credencial.Login, erro = symmetricEncryp.EncryptDataAES(credencial.Login, configs.AESKey); erro != nil {
-		return erro
-	}
-
-	if credencial.Senha, erro = symmetricEncryp.EncryptDataAES(credencial.Senha, configs.AESKey); erro != nil {
-		return erro
+	err = credencial.DecryptAES()
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (credencial *Credencial) DescriptografarAES() error {
-	var erro error
-	if credencial.Descricao, erro = symmetricEncryp.DecryptDataAES(credencial.Descricao, configs.AESKey); erro != nil {
-		return erro
+func (credencial *Credencial) EncryptAES() error {
+	var err error
+	if credencial.Descricao, err = symmetricEncrypt.EncryptDataAES(credencial.Descricao, configs.AESKey); err != nil {
+		return err
 	}
 
-	if credencial.SiteUrl, erro = symmetricEncryp.DecryptDataAES(credencial.SiteUrl, configs.AESKey); erro != nil {
-		return erro
+	if credencial.SiteUrl, err = symmetricEncrypt.EncryptDataAES(credencial.SiteUrl, configs.AESKey); err != nil {
+		return err
 	}
 
-	if credencial.Login, erro = symmetricEncryp.DecryptDataAES(credencial.Login, configs.AESKey); erro != nil {
-		return erro
+	if credencial.Login, err = symmetricEncrypt.EncryptDataAES(credencial.Login, configs.AESKey); err != nil {
+		return err
 	}
 
-	if credencial.Senha, erro = symmetricEncryp.DecryptDataAES(credencial.Senha, configs.AESKey); erro != nil {
-		return erro
-	}
-
-	return nil
-}
-
-func (credencial *Credencial) CriptografarRSA() error {
-	var erro error
-	publicKey, erro := asymmetrical.ParseRSAPublicKey(configs.RSAPublicKey)
-	if erro != nil {
-		return erro
-	}
-
-	if credencial.Descricao, erro = asymmetrical.EncryptRSA(credencial.Descricao, publicKey); erro != nil {
-		return erro
-	}
-
-	if credencial.SiteUrl, erro = asymmetrical.EncryptRSA(credencial.SiteUrl, publicKey); erro != nil {
-		return erro
-	}
-
-	if credencial.Login, erro = asymmetrical.EncryptRSA(credencial.Login, publicKey); erro != nil {
-		return erro
-	}
-
-	if credencial.Senha, erro = asymmetrical.EncryptRSA(credencial.Senha, publicKey); erro != nil {
-		return erro
+	if credencial.Senha, err = symmetricEncrypt.EncryptDataAES(credencial.Senha, configs.AESKey); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (credencial *Credencial) DescriptografarRSA() error {
-	var erro error
-	privateKey, erro := asymmetrical.ParseRSAPrivateKey(configs.RSAPrivateKey)
-	if erro != nil {
-		return erro
+func (credencial *Credencial) DecryptAES() error {
+	var err error
+	if credencial.Descricao, err = symmetricEncrypt.DecryptDataAES(credencial.Descricao, configs.AESKey); err != nil {
+		return err
 	}
 
-	if credencial.Descricao, erro = asymmetrical.DecryptRSA(credencial.Descricao, privateKey); erro != nil {
-		return erro
+	if credencial.SiteUrl, err = symmetricEncrypt.DecryptDataAES(credencial.SiteUrl, configs.AESKey); err != nil {
+		return err
 	}
 
-	if credencial.SiteUrl, erro = asymmetrical.DecryptRSA(credencial.SiteUrl, privateKey); erro != nil {
-		return erro
+	if credencial.Login, err = symmetricEncrypt.DecryptDataAES(credencial.Login, configs.AESKey); err != nil {
+		return err
 	}
 
-	if credencial.Login, erro = asymmetrical.DecryptRSA(credencial.Login, privateKey); erro != nil {
-		return erro
+	if credencial.Senha, err = symmetricEncrypt.DecryptDataAES(credencial.Senha, configs.AESKey); err != nil {
+		return err
 	}
 
-	if credencial.Senha, erro = asymmetrical.DecryptRSA(credencial.Senha, privateKey); erro != nil {
-		return erro
+	return nil
+}
+
+func (credencial *Credencial) EncryptRSA() error {
+	var err error
+	publicKey, err := asymmetrical.ParseRSAPublicKey(configs.RSAPublicKey)
+	if err != nil {
+		return err
+	}
+
+	if credencial.Descricao, err = asymmetrical.EncryptRSA(credencial.Descricao, publicKey); err != nil {
+		return err
+	}
+
+	if credencial.SiteUrl, err = asymmetrical.EncryptRSA(credencial.SiteUrl, publicKey); err != nil {
+		return err
+	}
+
+	if credencial.Login, err = asymmetrical.EncryptRSA(credencial.Login, publicKey); err != nil {
+		return err
+	}
+
+	if credencial.Senha, err = asymmetrical.EncryptRSA(credencial.Senha, publicKey); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (credencial *Credencial) DecryptRSA() error {
+	var err error
+	privateKey, err := asymmetrical.ParseRSAPrivateKey(configs.RSAPrivateKey)
+	if err != nil {
+		return err
+	}
+
+	if credencial.Descricao, err = asymmetrical.DecryptRSA(credencial.Descricao, privateKey); err != nil {
+		return err
+	}
+
+	if credencial.SiteUrl, err = asymmetrical.DecryptRSA(credencial.SiteUrl, privateKey); err != nil {
+		return err
+	}
+
+	if credencial.Login, err = asymmetrical.DecryptRSA(credencial.Login, privateKey); err != nil {
+		return err
+	}
+
+	if credencial.Senha, err = asymmetrical.DecryptRSA(credencial.Senha, privateKey); err != nil {
+		return err
 	}
 
 	return nil

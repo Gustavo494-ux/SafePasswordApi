@@ -12,244 +12,200 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// CriarCredencial insere uma Credencial no banco de dados
-func CriarCredencial(c echo.Context) error {
-	var Credencial models.Credencial
-	erro := c.Bind(&Credencial)
-	if erro != nil {
-		return c.JSON(http.StatusBadRequest, erro)
+// CreateCredential inserts a Credencial into the database
+func CreateCredential(c echo.Context) error {
+	var credential models.Credencial
+	err := c.Bind(&credential)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	usuarioId, erro := auth.ExtrairUsuarioID(c)
-	if erro != nil {
-		return c.JSON(http.StatusUnauthorized, erro)
+	userID, err := auth.ExtrairUsuarioID(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, err)
 	}
-	Credencial.UsuarioId = usuarioId
+	credential.UsuarioId = userID
 
-	db, erro := database.Conectar()
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro)
+	db, err := database.Conectar()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
 	}
 	defer db.Close()
 
-	repositorioUsuario := repository.NovoRepositoDeUsuario(db)
-	usuarioBanco, erro := repositorioUsuario.BuscarPorId(usuarioId)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro)
+	if err = credential.Prepare("saveData"); err != nil {
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	chave, erro := usuarioBanco.GerarChaveDeCodificacaoSimetrica()
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro)
+	credRepo := repository.NewCredentialRepository(db)
+	credID, err := credRepo.CreateCredential(credential)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	if erro = Credencial.Preparar("salvarDados", string(chave)); erro != nil {
-		return c.JSON(http.StatusBadRequest, erro)
+	credDB, err := credRepo.FindCredentialByID(credID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	repositorio := repository.NovoRepositoDeCredencial(db)
-	credencialID, erro := repositorio.CriarCredencial(Credencial)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro)
-	}
-
-	credencial, erro := repositorio.BuscarCredencialPorId(credencialID)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro)
-	}
-
-	return c.JSON(http.StatusCreated, credencial)
+	return c.JSON(http.StatusCreated, credDB)
 }
 
-// BuscarCredencials busca uma Credencial no banco de dados
-func BuscarCredencial(c echo.Context) error {
-	credencialId, erro := strconv.ParseUint(c.Param("credencialId"), 10, 64)
-	if erro != nil {
-		return c.JSON(http.StatusBadRequest, erro)
+// GetCredential retrieves a Credencial from the database
+func GetCredential(c echo.Context) error {
+	credID, err := strconv.ParseUint(c.Param("credentialID"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	db, erro := database.Conectar()
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	db, err := database.Conectar()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	defer db.Close()
 
-	repositorio := repository.NovoRepositoDeCredencial(db)
-	credencial, erro := repositorio.BuscarCredencialPorId(credencialId)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	credRepo := repository.NewCredentialRepository(db)
+	cred, err := credRepo.FindCredentialByID(credID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	if credencial.Id == 0 {
-		return c.JSON(http.StatusNotFound, errors.New("nenhuma credencial foi encontrado"))
+	if cred.Id == 0 {
+		return c.JSON(http.StatusNotFound, errors.New("no credential found"))
 	}
 
-	repositorioUsuario := repository.NovoRepositoDeUsuario(db)
-	usuarioBanco, erro := repositorioUsuario.BuscarPorId(credencial.UsuarioId)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	if err = cred.Prepare("retrieveData"); err != nil {
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	chave, erro := usuarioBanco.GerarChaveDeCodificacaoSimetrica()
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro)
-	}
-
-	if erro = credencial.Preparar("consultarDados", string(chave)); erro != nil {
-		return c.JSON(http.StatusBadRequest, erro)
-	}
-
-	return c.JSON(http.StatusOK, credencial)
+	return c.JSON(http.StatusOK, cred)
 }
 
-// BuscarCredencials busca todas as credenciais do usuário logado
-func BuscarCredenciais(c echo.Context) error {
-	usuarioId, erro := auth.ExtrairUsuarioID(c)
-	if erro != nil {
-		return c.JSON(http.StatusUnauthorized, erro)
+// GetCredentials retrieves all credentials of the logged-in user
+func GetCredentials(c echo.Context) error {
+	userID, err := auth.ExtrairUsuarioID(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, err)
 	}
 
-	db, erro := database.Conectar()
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	db, err := database.Conectar()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	defer db.Close()
 
-	repositorio := repository.NovoRepositoDeCredencial(db)
-	credenciaisBanco, erro := repositorio.BuscarCredenciais(usuarioId)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	credRepo := repository.NewCredentialRepository(db)
+	credsDB, err := credRepo.FindCredentials(userID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	if len(credenciaisBanco) == 0 {
-		return c.JSON(http.StatusNotFound, errors.New("nenhuma credencial foi encontrado"))
+	if len(credsDB) == 0 {
+		return c.JSON(http.StatusNotFound, errors.New("no credentials found"))
 	}
 
-	repositorioUsuario := repository.NovoRepositoDeUsuario(db)
-	usuarioBanco, erro := repositorioUsuario.BuscarPorId(usuarioId)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
-	}
-
-	chave, erro := usuarioBanco.GerarChaveDeCodificacaoSimetrica()
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro)
-	}
-
-	var credenciaisDescriptografadas []models.Credencial
-	for _, credencial := range credenciaisBanco {
-		if erro := credencial.Preparar("consultarDados", string(chave)); erro != nil {
-			return c.JSON(http.StatusBadRequest, erro)
+	var decryptedCredentials []models.Credencial
+	for _, cred := range credsDB {
+		if err := cred.Prepare("retrieveData"); err != nil {
+			return c.JSON(http.StatusBadRequest, err)
 		}
-		credenciaisDescriptografadas = append(credenciaisDescriptografadas, credencial)
+		decryptedCredentials = append(decryptedCredentials, cred)
 	}
 
-	return c.JSON(http.StatusOK, credenciaisDescriptografadas)
+	return c.JSON(http.StatusOK, decryptedCredentials)
 }
 
-// AtualizarCredencial Atualiza as informações de uma Credencial no banco
-func AtualizarCredencial(c echo.Context) error {
-	credencialId, erro := strconv.ParseUint(c.Param("credencialId"), 10, 64)
-	if erro != nil {
-		return c.JSON(http.StatusBadRequest, erro)
+// UpdateCredential updates the information of a Credencial in the database
+func UpdateCredential(c echo.Context) error {
+	credID, err := strconv.ParseUint(c.Param("credentialID"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	var credencialRequisicao models.Credencial
-	erro = c.Bind(&credencialRequisicao)
-	if erro != nil {
-		return c.JSON(http.StatusBadRequest, erro)
+	var requestCredential models.Credencial
+	err = c.Bind(&requestCredential)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	usuarioId, erro := auth.ExtrairUsuarioID(c)
-	if erro != nil {
-		return c.JSON(http.StatusUnauthorized, erro)
+	userID, err := auth.ExtrairUsuarioID(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, err)
 	}
 
-	db, erro := database.Conectar()
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	db, err := database.Conectar()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	defer db.Close()
 
-	repositorioUsuario := repository.NovoRepositoDeUsuario(db)
-	usuarioBanco, erro := repositorioUsuario.BuscarPorId(usuarioId)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	credRepo := repository.NewCredentialRepository(db)
+	credDB, err := credRepo.FindCredentialByID(credID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	chave, erro := usuarioBanco.GerarChaveDeCodificacaoSimetrica()
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro)
+	if credDB.Id == 0 {
+		return c.JSON(http.StatusNotFound, errors.New("no credential found"))
 	}
 
-	repositorio := repository.NovoRepositoDeCredencial(db)
-	credencialBanco, erro := repositorio.BuscarCredencialPorId(credencialId)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	if credDB.UsuarioId != userID {
+		return c.JSON(http.StatusNotFound, errors.New("cannot update a credential of another user"))
 	}
 
-	if credencialBanco.Id == 0 {
-		return c.JSON(http.StatusNotFound, errors.New("nenhuma credencial foi encontrado"))
+	requestCredential.UsuarioId = credDB.UsuarioId
+
+	if err = requestCredential.Prepare("saveData"); err != nil {
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	if credencialBanco.UsuarioId != usuarioId {
-		return c.JSON(http.StatusNotFound, errors.New("não é possível atualizar uma credencial de outro usuário"))
+	err = credRepo.UpdateCredential(credDB.Id, requestCredential)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	credencialRequisicao.UsuarioId = credencialBanco.UsuarioId
-
-	if erro = credencialRequisicao.Preparar("salvarDados", string(chave)); erro != nil {
-		return c.JSON(http.StatusBadRequest, erro)
+	credDB, err = credRepo.FindCredentialByID(credID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	erro = repositorio.AtualizarCredencial(credencialBanco.Id, credencialRequisicao)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	if err = credDB.Prepare("retrieveData"); err != nil {
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	credencialBanco, erro = repositorio.BuscarCredencialPorId(credencialId)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
-	}
-
-	if erro = credencialBanco.Preparar("consultarDados", string(chave)); erro != nil {
-		return c.JSON(http.StatusBadRequest, erro)
-	}
-
-	return c.JSON(http.StatusOK, credencialBanco)
+	return c.JSON(http.StatusOK, credDB)
 }
 
-// DeletarCredencial deleta um Credencial do banco de dados
-func DeletarCredencial(c echo.Context) error {
-	credencialId, erro := strconv.ParseUint(c.Param("credencialId"), 10, 64)
-	if erro != nil {
-		return c.JSON(http.StatusBadRequest, erro)
+// DeleteCredential deletes a Credencial from the database
+func DeleteCredential(c echo.Context) error {
+	credID, err := strconv.ParseUint(c.Param("credentialID"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	usuarioId, erro := auth.ExtrairUsuarioID(c)
-	if erro != nil {
-		return c.JSON(http.StatusUnauthorized, erro)
+	userID, err := auth.ExtrairUsuarioID(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, err)
 	}
 
-	db, erro := database.Conectar()
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	db, err := database.Conectar()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	defer db.Close()
 
-	repositorio := repository.NovoRepositoDeCredencial(db)
-	credencialBanco, erro := repositorio.BuscarCredencialPorId(credencialId)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	credRepo := repository.NewCredentialRepository(db)
+	credDB, err := credRepo.FindCredentialByID(credID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	if credencialBanco.UsuarioId != usuarioId {
-		return c.JSON(http.StatusNotFound, errors.New("não é possível deletar uma credencial de outro usuário"))
+	if credDB.UsuarioId != userID {
+		return c.JSON(http.StatusNotFound, errors.New("cannot delete a credential of another user"))
 	}
 
-	if erro := repositorio.DeletarCredencial(credencialId); erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	if err := credRepo.DeleteCredential(credID); err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(http.StatusNoContent, "Credencial excluida com sucesso!")
+	return c.JSON(http.StatusNoContent, "Credential deleted successfully!")
 }

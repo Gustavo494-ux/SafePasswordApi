@@ -7,15 +7,15 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func RotasCredenciais(e *echo.Echo) {
+func CredentialRoutes(e *echo.Echo) {
 
-	// Grupo de rotas com middleware|
-	grupoCredencial := e.Group("/credenciais")
-	grupoCredencial.Use(middlewares.Autenticar)
+	// Group of routes with middleware
+	credentialGroup := e.Group("/credentials")
+	credentialGroup.Use(middlewares.Authenticate)
 
-	grupoCredencial.POST("", controllers.CriarCredencial)
-	grupoCredencial.GET("", controllers.BuscarCredenciais)
-	grupoCredencial.GET("/:credencialId", controllers.BuscarCredencial)
-	grupoCredencial.PUT("/:credencialId", controllers.AtualizarCredencial)
-	grupoCredencial.DELETE("/:credencialId", controllers.DeletarCredencial)
+	credentialGroup.POST("", controllers.CreateCredential)
+	credentialGroup.GET("", controllers.GetCredentials)
+	credentialGroup.GET("/:credentialId", controllers.GetCredential)
+	credentialGroup.PUT("/:credentialId", controllers.UpdateCredential)
+	credentialGroup.DELETE("/:credentialId", controllers.DeleteCredential)
 }

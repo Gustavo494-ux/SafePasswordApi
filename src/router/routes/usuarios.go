@@ -13,7 +13,7 @@ func RotasUsuarios(e *echo.Echo) {
 
 	// Grupo de rotas com middleware|
 	grupoUsuario := e.Group("/usuarios")
-	grupoUsuario.Use(middlewares.Autenticar)
+	grupoUsuario.Use(middlewares.Authenticate)
 
 	grupoUsuario.GET("", controllers.BuscarUsuarios)
 	grupoUsuario.GET("/:usuarioId", controllers.BuscarUsuario)
