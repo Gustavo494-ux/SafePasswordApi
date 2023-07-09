@@ -180,39 +180,35 @@ func ValidatePublicKey(publicKeyString string) error {
 	return nil
 }
 
-func ParseRSAPublicKey(publicKeyStr string) (*rsa.PublicKey, error) {
-	publicKeyByte := []byte(publicKeyStr)
-
-	block, _ := pem.Decode(publicKeyByte)
-	if block == nil {
-		return nil, errors.New("failed to parse PEM block containing the public key")
+func ParseRSAPrivateKey(privateKeyPEM string) (*rsa.PrivateKey, error) {
+	block, _ := pem.Decode([]byte(privateKeyPEM))
+	if block == nil || block.Type != "RSA PRIVATE KEY" {
+		return nil, errors.New("invalid private key")
 	}
 
-	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
 		return nil, err
 	}
 
-	rsaPublicKey, ok := pub.(*rsa.PublicKey)
-	if !ok {
-		return nil, errors.New("failed to parse RSA public key")
-	}
-
-	return rsaPublicKey, nil
+	return privateKey, nil
 }
 
-func ParseRSAPrivateKey(privateKeyStr string) (*rsa.PrivateKey, error) {
-	privateKeyByte := []byte(privateKeyStr)
-
-	block, _ := pem.Decode(privateKeyByte)
-	if block == nil {
-		return nil, errors.New("failed to parse PEM block containing the private key")
+func ParseRSAPublicKey(publicKeyPEM string) (*rsa.PublicKey, error) {
+	block, _ := pem.Decode([]byte(publicKeyPEM))
+	if block == nil || block.Type != "PUBLIC KEY" {
+		return nil, errors.New("invalid public key")
 	}
 
-	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	publicKeyInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
 		return nil, err
 	}
 
-	return priv, nil
+	publicKey, ok := publicKeyInterface.(*rsa.PublicKey)
+	if !ok {
+		return nil, errors.New("failed to parse public key")
+	}
+
+	return publicKey, nil
 }
