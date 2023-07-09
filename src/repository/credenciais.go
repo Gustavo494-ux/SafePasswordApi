@@ -51,7 +51,7 @@ func (repo *Credential) CreateCredential(credential models.Credencial) (uint64, 
 func (repo *Credential) FindCredentialByID(credentialID uint64) (models.Credencial, error) {
 	credential := models.Credencial{}
 	err := repo.db.Get(&credential,
-		`SELECT id, UsuarioId, Descricao, SiteUrl, Login, Senha, CriadoEm FROM Credenciais WHERE id = ?`,
+		`SELECT id, usuarioId, descricao, siteUrl, login, senha, criadoem FROM Credenciais WHERE id = ?`,
 		credentialID,
 	)
 	if err == sql.ErrNoRows {
@@ -68,7 +68,7 @@ func (repo *Credential) FindCredentialByID(credentialID uint64) (models.Credenci
 func (repo *Credential) FindCredentials(userID uint64) ([]models.Credencial, error) {
 	credentials := []models.Credencial{}
 	err := repo.db.Select(&credentials,
-		"SELECT id, UsuarioId, Descricao, SiteUrl, Login, Senha, CriadoEm FROM Credenciais WHERE UsuarioId = ?",
+		"SELECT id, usuarioId, descricao, siteUrl, login, senha, criadoem FROM Credenciais WHERE UsuarioId = ?",
 		userID,
 	)
 	if len(credentials) == 0 {
@@ -84,7 +84,7 @@ func (repo *Credential) FindCredentials(userID uint64) ([]models.Credencial, err
 // UpdateCredential updates a credential's information in the database
 func (repo *Credential) UpdateCredential(credentialID uint64, credential models.Credencial) error {
 	resultado, err := repo.db.Exec(
-		`UPDATE Credenciais SET Descricao=?, SiteUrl=?, Login=?, Senha=? WHERE id=?`,
+		`UPDATE Credenciais SET descricao=?, siteUrl=?, login=?, senha=? WHERE id=?`,
 		credential.Descricao,
 		credential.SiteUrl,
 		credential.Login,
