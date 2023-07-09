@@ -6,63 +6,63 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
-	"fmt"
-	hashEncrpt "safePasswordApi/src/security/encrypt/hash"
+	"io"
 )
 
-// EncryptDataAES encrypts the data using the AES algorithm
+// EncryptDataAES encrypts the data using the AES-256 algorithm
 func EncryptDataAES(Data string, Key string) (string, error) {
-	keyBytes := reduceKey([]byte(Key), 32)
-	iv := reduceKey([]byte(Key), aes.BlockSize)
+	keyBytes := []byte(Key)
 
 	block, err := aes.NewCipher(keyBytes)
 	if err != nil {
 		return "", err
 	}
+
+	// Generate a unique initialization vector (IV)
+	iv := make([]byte, aes.BlockSize)
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		return "", err
+	}
+
+	ciphertext := make([]byte, aes.BlockSize+len(Data))
+
+	// Copy the IV to the beginning of the ciphertext
+	copy(ciphertext[:aes.BlockSize], iv)
 
 	stream := cipher.NewCFBEncrypter(block, iv)
-	ciphertext := make([]byte, len(Data))
-	stream.XORKeyStream(ciphertext, []byte(Data))
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], []byte(Data))
 
-	ciphertext = append(iv, ciphertext...)
-	return fmt.Sprintf("%x", ciphertext), nil
+	return hex.EncodeToString(ciphertext), nil
 }
 
-// DecryptDataAES decrypts data using the AES algorithm
+// DecryptDataAES decrypts data using the AES-256 algorithm
 func DecryptDataAES(Data string, Key string) (string, error) {
-	keyBytes := reduceKey([]byte(Key), 32)
-	iv := reduceKey([]byte(Key), aes.BlockSize)
+	if !IsTextEncryptedAES(Data) {
+		return "", errors.New("unencrypted data using AES 256")
+	}
 
-	ciphertextBytes, err := hex.DecodeString(Data)
+	keyBytes := []byte(Key)
+	ciphertext, err := hex.DecodeString(Data)
 	if err != nil {
 		return "", err
 	}
 
-	if len(ciphertextBytes) < aes.BlockSize {
-		return "", errors.New("invalid ciphertext")
-	}
+	// Retrieve the IV from the beginning of the ciphertext
+	iv := ciphertext[:aes.BlockSize]
+	ciphertext = ciphertext[aes.BlockSize:]
 
 	block, err := aes.NewCipher(keyBytes)
 	if err != nil {
 		return "", err
 	}
 
-	ciphertextBytes = ciphertextBytes[aes.BlockSize:]
-
 	stream := cipher.NewCFBDecrypter(block, iv)
-	stream.XORKeyStream(ciphertextBytes, ciphertextBytes)
+	stream.XORKeyStream(ciphertext, ciphertext)
 
-	return string(ciphertextBytes), nil
+	return string(ciphertext), nil
 }
 
-func reduceKey(key []byte, newLength int) []byte {
-	newKey, _ := hashEncrpt.GenerateSHA512(hex.EncodeToString(key))
-	if newLength >= len(newKey) {
-		return key
-	}
-	return append([]byte(nil), newKey[:newLength]...)
-}
-
+// GenerateRandomAESKey generates a random AES-256 key
 func GenerateRandomAESKey() (string, error) {
 	key := make([]byte, 32)
 	_, err := rand.Read(key)
@@ -70,6 +70,11 @@ func GenerateRandomAESKey() (string, error) {
 		return "", err
 	}
 
-	keyString := hex.EncodeToString(key)
-	return keyString, nil
+	//return hex.EncodeToString(key), nil
+	return string(key), nil
+}
+
+// IsTextEncryptedAES checks if the text is encrypted with AES
+func IsTextEncryptedAES(text string) bool {
+	return len([]byte(text)) > aes.BlockSize
 }
