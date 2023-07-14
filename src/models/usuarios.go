@@ -66,14 +66,14 @@ func (usuario *Usuario) Formatar(etapa string) error {
 				return err
 			}
 			usuario.Senha = senhaHash
-			if err = usuario.Encrypt(); err != nil {
-				return err
-			}
+			// if err = usuario.Encrypt(); err != nil {
+			// 	return err
+			// }
 		}
-	case "consulta":
-		if err := usuario.Decrypt(); err != nil {
-			return err
-		}
+		// case "consulta":
+		// 	if err := usuario.Decrypt(); err != nil {
+		// 		return err
+		// 	}
 	}
 
 	return nil
