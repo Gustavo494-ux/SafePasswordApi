@@ -11,151 +11,149 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// CriarUsuario insere um usuário no banco de dados
-func CriarUsuario(c echo.Context) error {
-	var usuario models.Usuario
-	erro := c.Bind(&usuario)
-	if erro != nil {
-		return c.String(http.StatusBadRequest, erro.Error())
+// CreateUser inserts a user into the database.
+func CreateUser(c echo.Context) error {
+	var user models.Usuario
+	if err := c.Bind(&user); err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
 	}
 
-	if erro = usuario.Preparar("cadastro"); erro != nil {
-		return c.JSON(http.StatusBadRequest, erro)
+	if err := user.Prepare("signup"); err != nil {
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	db, erro := database.Conectar()
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro)
+	db, err := database.Conectar()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
 	}
 	defer db.Close()
 
-	repositorio := repository.NovoRepositoDeUsuario(db)
-	usuarioID, erro := repositorio.CriarUsuario(usuario)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro)
+	repo := repository.NewUserRepository(db)
+	userId, err := repo.CreateUser(user)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	usuario, erro = repositorio.BuscarPorId(usuarioID)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro)
+	user, err = repo.FindByID(userId)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusCreated, usuario)
+	return c.JSON(http.StatusCreated, user)
 }
 
-// BuscarUsuarios busca um  usuário no banco de dados
-func BuscarUsuario(c echo.Context) error {
-	usuarioId, erro := strconv.ParseUint(c.Param("usuarioId"), 10, 64)
-	if erro != nil {
-		return c.JSON(http.StatusBadRequest, erro)
+// FindUser finds a user in the database by ID.
+func FindUser(c echo.Context) error {
+	userId, err := strconv.ParseUint(c.Param("userId"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	db, erro := database.Conectar()
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	db, err := database.Conectar()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	defer db.Close()
 
-	repositorio := repository.NovoRepositoDeUsuario(db)
-	usuario, erro := repositorio.BuscarPorId(usuarioId)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	repo := repository.NewUserRepository(db)
+	user, err := repo.FindByID(userId)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	if usuario.ID == 0 {
-		return c.JSON(http.StatusNotFound, errors.New("nenhum usuário foi encontrado"))
+	if user.ID == 0 {
+		return c.JSON(http.StatusNotFound, errors.New("no user found"))
 	}
 
-	return c.JSON(http.StatusOK, usuario)
+	return c.JSON(http.StatusOK, user)
 }
 
-// BuscarUsuarios busca todos os usuários salvos no banco
-func BuscarUsuarios(c echo.Context) error {
-	db, erro := database.Conectar()
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro)
+// FindAllUsers retrieves all users saved in the database.
+func FindAllUsers(c echo.Context) error {
+	db, err := database.Conectar()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
 	}
 	defer db.Close()
 
-	repositorio := repository.NovoRepositoDeUsuario(db)
-	usuarios, erro := repositorio.BuscarUsuarios()
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro)
+	repo := repository.NewUserRepository(db)
+	users, err := repo.FindAllUsers()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	if len(usuarios) == 0 {
-		return c.JSON(http.StatusNotFound, errors.New("nenhum usuário foi encontrado"))
+	if len(users) == 0 {
+		return c.JSON(http.StatusNotFound, errors.New("no users found"))
 	}
 
-	return c.JSON(http.StatusOK, usuarios)
+	return c.JSON(http.StatusOK, users)
 }
 
-// AtualizarUsuario Atualiza as informações de um usuário no banco
-func AtualizarUsuario(c echo.Context) error {
-	usuarioId, erro := strconv.ParseUint(c.Param("usuarioId"), 10, 64)
-	if erro != nil {
-		return c.JSON(http.StatusBadRequest, erro.Error())
+// UpdateUser updates user information in the database.
+func UpdateUser(c echo.Context) error {
+	userId, err := strconv.ParseUint(c.Param("userId"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	var usuarioRequisicao models.Usuario
-	erro = c.Bind(&usuarioRequisicao)
-	if erro != nil {
-		return c.String(http.StatusBadRequest, erro.Error())
+	var userRequest models.Usuario
+	if err := c.Bind(&userRequest); err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
 	}
 
-	db, erro := database.Conectar()
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	db, err := database.Conectar()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	defer db.Close()
 
-	repositorio := repository.NovoRepositoDeUsuario(db)
-	usuarioBanco, erro := repositorio.BuscarPorId(usuarioId)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	repo := repository.NewUserRepository(db)
+	userDB, err := repo.FindByID(userId)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	if usuarioBanco.ID == 0 {
-		return c.JSON(http.StatusNotFound, errors.New("usuário não encontrado"))
+	if userDB.ID == 0 {
+		return c.JSON(http.StatusNotFound, errors.New("user not found"))
 	}
 
-	if erro = repositorio.AtualizarUsuario(usuarioId, usuarioRequisicao); erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	if err := repo.UpdateUser(userId, userRequest); err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	usuarioBanco, erro = repositorio.BuscarPorId(usuarioId)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	userDB, err = repo.FindByID(userId)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(http.StatusCreated, usuarioBanco)
+	return c.JSON(http.StatusCreated, userDB)
 }
 
-// DeletarUsuario deleta um usuário do banco de dados
-func DeletarUsuario(c echo.Context) error {
-	usuarioId, erro := strconv.ParseUint(c.Param("usuarioId"), 10, 64)
-	if erro != nil {
-		return c.JSON(http.StatusBadRequest, erro.Error())
+// DeleteUser deletes a user from the database.
+func DeleteUser(c echo.Context) error {
+	userId, err := strconv.ParseUint(c.Param("userId"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	db, erro := database.Conectar()
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	db, err := database.Conectar()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	defer db.Close()
 
-	repositorio := repository.NovoRepositoDeUsuario(db)
-	usuarioBanco, erro := repositorio.BuscarPorId(usuarioId)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	repo := repository.NewUserRepository(db)
+	userDB, err := repo.FindByID(userId)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	if usuarioBanco.ID == 0 {
-		return c.JSON(http.StatusNotFound, errors.New("usuário não encontrado"))
+	if userDB.ID == 0 {
+		return c.JSON(http.StatusNotFound, errors.New("user not found"))
 	}
 
-	if erro = repositorio.DeletarUsuario(usuarioId); erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	if err := repo.DeleteUser(userId); err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(http.StatusNoContent, nil)

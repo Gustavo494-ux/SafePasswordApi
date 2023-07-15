@@ -22,153 +22,165 @@ type Usuario struct {
 	CriadoEm time.Time `json:"criadoEm,omitempty" db:"criadoem"`
 }
 
-// Preparar vai chamar os métodos para validar e formatar usuário  recebido
-func (usuario *Usuario) Preparar(etapa string) error {
-	if erro := usuario.Validar(etapa); erro != nil {
-		return erro
+// Prepare will call methods to validate and format the received user based on the given stage.
+func (user *Usuario) Prepare(stage string) error {
+	switch stage {
+	case "signup":
+		if err := user.Validate(stage); err != nil {
+			return err
+		}
 	}
 
-	if erro := usuario.Formatar(etapa); erro != nil {
-		return erro
-	}
-	return nil
-}
-
-func (usuario *Usuario) Validar(etapa string) error {
-	if usuario.Nome == "" {
-		return errors.New("o nome é obrigatório e não pode estar em branco")
-	}
-
-	if usuario.Email == "" {
-		return errors.New("o email é obrigatório e não pode estar em branco")
-	}
-
-	if erro := checkmail.ValidateFormat(usuario.Email); erro != nil {
-		return errors.New("o email inserido é inválido")
-	}
-
-	if usuario.Senha == "" && etapa == "cadastro" {
-		return errors.New("o eenha é obrigatório e não pode estar em branco")
+	if err := user.Format(stage); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (usuario *Usuario) Formatar(etapa string) error {
-	usuario.Nome = strings.TrimSpace(usuario.Nome)
-	usuario.Email = strings.TrimSpace(usuario.Email)
+// Validate checks if the user fields are valid based on the given stage.
+func (user *Usuario) Validate(stage string) error {
+	if user.Nome == "" {
+		return errors.New("name is required and cannot be blank")
+	}
 
-	switch etapa {
-	case "cadastro":
+	if user.Email == "" {
+		return errors.New("email is required and cannot be blank")
+	}
+
+	if err := checkmail.ValidateFormat(user.Email); err != nil {
+		return errors.New("invalid email format")
+	}
+
+	if user.Senha == "" && stage == "signup" {
+		return errors.New("password is required and cannot be blank")
+	}
+
+	return nil
+}
+
+// Format trims the leading and trailing spaces of the user's Name and Email fields and applies additional formatting based on the given stage.
+func (user *Usuario) Format(stage string) error {
+	user.Nome = strings.TrimSpace(user.Nome)
+	user.Email = strings.TrimSpace(user.Email)
+
+	switch stage {
+	case "signup":
 		{
-			senhaHash, err := hashEncrpt.GenerateSHA512(usuario.Senha)
+			senhaHash, err := hashEncrpt.GenerateSHA512(user.Senha)
 			if err != nil {
 				return err
 			}
-			usuario.Senha = senhaHash
-			// if err = usuario.Encrypt(); err != nil {
-			// 	return err
-			// }
+			user.Senha = senhaHash
+			if err = user.Encrypt(); err != nil {
+				return err
+			}
 		}
-		// case "consulta":
-		// 	if err := usuario.Decrypt(); err != nil {
-		// 		return err
-		// 	}
+	case "query":
+		if err := user.Decrypt(); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func (usuario *Usuario) GerarChaveDeCodificacaoSimetrica() ([]byte, error) {
-	idHash, erro := hashEncrpt.GenerateSHA512(strconv.FormatUint(usuario.ID, 10))
+// GenerateSymmetricEncryptionKey generates a symmetric encryption key based on the user's ID and Password.
+func (user *Usuario) GenerateSymmetricEncryptionKey() ([]byte, error) {
+	idHash, erro := hashEncrpt.GenerateSHA512(strconv.FormatUint(user.ID, 10))
 	if erro != nil {
 		return []byte{}, erro
 	}
 
 	var senhaHash string
-	if len(usuario.Senha) == 128 {
-		senhaHash = usuario.Senha
+	if len(user.Senha) == 128 {
+		senhaHash = user.Senha
 	} else {
-		senhaHash, erro = hashEncrpt.GenerateSHA512(usuario.Senha)
+		senhaHash, erro = hashEncrpt.GenerateSHA512(user.Senha)
 		if erro != nil {
 			return []byte{}, erro
 		}
 	}
 
-	chaveDeCodificacao, erro := hashEncrpt.GenerateSHA512(fmt.Sprintf(idHash, usuario.ID, senhaHash))
+	chaveDeCodificacao, erro := hashEncrpt.GenerateSHA512(fmt.Sprintf("%s%d%s", idHash, user.ID, senhaHash))
 	if erro != nil {
 		return []byte{}, erro
 	}
 	return []byte(chaveDeCodificacao), nil
 }
 
-func (usuario *Usuario) EncryptAES() error {
+// EncryptAES encrypts the user's Name and Email using AES encryption.
+func (user *Usuario) EncryptAES() error {
 	var err error
-	if usuario.Nome, err = symmetricEncrypt.EncryptDataAES(usuario.Nome, configs.AESKey); err != nil {
+	if user.Nome, err = symmetricEncrypt.EncryptDataAES(user.Nome, configs.AESKey); err != nil {
 		return err
 	}
 
-	if usuario.Email, err = symmetricEncrypt.EncryptDataAES(usuario.Email, configs.AESKey); err != nil {
+	if user.Email, err = symmetricEncrypt.EncryptDataAES(user.Email, configs.AESKey); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (usuario *Usuario) DecryptAES() error {
+// DecryptAES decrypts the user's Name and Email using AES decryption.
+func (user *Usuario) DecryptAES() error {
 	var err error
-	if usuario.Nome, err = symmetricEncrypt.DecryptDataAES(usuario.Nome, configs.AESKey); err != nil {
+	if user.Nome, err = symmetricEncrypt.DecryptDataAES(user.Nome, configs.AESKey); err != nil {
 		return err
 	}
 
-	if usuario.Email, err = symmetricEncrypt.DecryptDataAES(usuario.Email, configs.AESKey); err != nil {
+	if user.Email, err = symmetricEncrypt.DecryptDataAES(user.Email, configs.AESKey); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (usuario *Usuario) EncryptRSA() error {
+// EncryptRSA encrypts the user's Name and Email using RSA encryption.
+func (user *Usuario) EncryptRSA() error {
 	var err error
 	publicKey, err := asymmetrical.ParseRSAPublicKey(configs.RSAPublicKey)
 	if err != nil {
 		return err
 	}
 
-	if usuario.Nome, err = asymmetrical.EncryptRSA(usuario.Nome, publicKey); err != nil {
+	if user.Nome, err = asymmetrical.EncryptRSA(user.Nome, publicKey); err != nil {
 		return err
 	}
 
-	if usuario.Email, err = asymmetrical.EncryptRSA(usuario.Email, publicKey); err != nil {
+	if user.Email, err = asymmetrical.EncryptRSA(user.Email, publicKey); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (usuario *Usuario) DecryptRSA() error {
+// DecryptRSA decrypts the user's Name and Email using RSA decryption.
+func (user *Usuario) DecryptRSA() error {
 	var err error
 	privateKey, err := asymmetrical.ParseRSAPrivateKey(configs.RSAPrivateKey)
 	if err != nil {
 		return err
 	}
 
-	if usuario.Nome, err = asymmetrical.DecryptRSA(usuario.Nome, privateKey); err != nil {
+	if user.Nome, err = asymmetrical.DecryptRSA(user.Nome, privateKey); err != nil {
 		return err
 	}
 
-	if usuario.Email, err = asymmetrical.DecryptRSA(usuario.Email, privateKey); err != nil {
+	if user.Email, err = asymmetrical.DecryptRSA(user.Email, privateKey); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (usuario *Usuario) Encrypt() error {
-	err := usuario.EncryptAES()
+// Encrypt encrypts the user's data using both AES and RSA encryption.
+func (user *Usuario) Encrypt() error {
+	err := user.EncryptAES()
 	if err != nil {
 		return err
 	}
 
-	err = usuario.EncryptRSA()
+	err = user.EncryptRSA()
 	if err != nil {
 		return err
 	}
@@ -176,13 +188,14 @@ func (usuario *Usuario) Encrypt() error {
 	return nil
 }
 
-func (usuario *Usuario) Decrypt() error {
-	err := usuario.DecryptRSA()
+// Decrypt decrypts the user's data using both AES and RSA decryption.
+func (user *Usuario) Decrypt() error {
+	err := user.DecryptRSA()
 	if err != nil {
 		return err
 	}
 
-	err = usuario.DecryptAES()
+	err = user.DecryptAES()
 	if err != nil {
 		return err
 	}

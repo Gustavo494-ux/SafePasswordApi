@@ -6,7 +6,6 @@ package models_test
 // 	"testing"
 // 	"time"
 //
-//
 // )
 
 // var UserPath_DotEnv = "./../../.env"
@@ -69,19 +68,6 @@ package models_test
 // 			t.Error("Expected an error, but none returned")
 // 		} else if err.Error() != "name is required and cannot be blank" {
 // 			t.Errorf("Expected error: %s", "name is required and cannot be blank")
-// 		}
-// 	}
-// }
-
-// func TestUser_Validar_EmptyEmail(t *testing.T) {
-// 	var err error
-// 	for _, usuario := range usuarioCredentials {
-// 		usuario.Email = ""
-// 		err = usuario.Validar("signup")
-// 		if err == nil {
-// 			t.Error("Expected an error, but none returned")
-// 		} else if err.Error() != "email is required and cannot be blank" {
-// 			t.Errorf("Expected error: %s", "email is required and cannot be blank")
 // 		}
 // 	}
 // }
@@ -180,7 +166,7 @@ package models_test
 // 		}
 // 	}
 
-// 	// Decrypt usuarios
+// 	//Decrypt usuarios
 // 	for i := range usuariosToEncrypt {
 // 		err = usuariosToEncrypt[i].DecryptAES()
 // 		if err != nil {
@@ -188,7 +174,7 @@ package models_test
 // 		}
 // 	}
 
-// 	// Compare original usuarios with decrypted ones
+// 	//Compare original usuarios with decrypted ones
 // 	for i := range usuarioCredentials {
 // 		if usuariosToEncrypt[i].Nome != usuarioCredentials[i].Nome ||
 // 			usuariosToEncrypt[i].Email != usuarioCredentials[i].Email ||

@@ -2,10 +2,8 @@ package controllers
 
 import (
 	"net/http"
-
 	"safePasswordApi/src/database"
 	"safePasswordApi/src/models"
-
 	"safePasswordApi/src/repository"
 	"safePasswordApi/src/security/auth"
 	hashEncryp "safePasswordApi/src/security/encrypt/hash"
@@ -15,33 +13,41 @@ import (
 
 // Login
 func Login(c echo.Context) error {
-	var usuario models.Usuario
-	erro := c.Bind(&usuario)
-	if erro != nil {
-		return c.String(http.StatusBadRequest, erro.Error())
+	// Bind the user data from the request body
+	var user models.Usuario
+	err := c.Bind(&user)
+	if err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
 	}
 
-	db, erro := database.Conectar()
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	// Connect to the database
+	db, err := database.Conectar()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	defer db.Close()
 
-	repositorio := repository.NovoRepositoDeUsuario(db)
-	usuarioBanco, erro := repositorio.BuscarPorEmail(usuario.Email)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	// Create a user repository instance
+	repo := repository.NewUserRepository(db)
+
+	// Find the user by email in the database
+	dbUser, err := repo.FindByEmail(user.Email)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	if erro = hashEncryp.CompareSHA512(usuarioBanco.Senha, usuario.Senha); erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	// Compare the hashed password from the database with the provided password
+	if err = hashEncryp.CompareSHA512(dbUser.Senha, user.Senha); err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
+	// Create a login response with a JWT token
 	var login models.Login
-	login.Token, erro = auth.CriarTokenJWT(usuarioBanco.ID)
-	if erro != nil {
-		return c.JSON(http.StatusInternalServerError, erro.Error())
+	login.Token, err = auth.CriarTokenJWT(dbUser.ID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
+	// Return the login response with the JWT token
 	return c.JSON(http.StatusOK, login)
 }

@@ -7,127 +7,127 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type Usuarios struct {
+type Users struct {
 	db *sqlx.DB
 }
 
-// NovoRepositoDeUsuario cria um repositório de usuarios
-func NovoRepositoDeUsuario(db *sqlx.DB) *Usuarios {
-	return &Usuarios{db}
+// NewUserRepository creates a new user repository.
+func NewUserRepository(db *sqlx.DB) *Users {
+	return &Users{db}
 }
 
-// CriarUsuario Adiciona um novo usuário
-func (repositorio Usuarios) CriarUsuario(Usuario models.Usuario) (uint64, error) {
-	statement, erro := repositorio.db.Exec(
-		` INSERT INTO Usuarios (nome, email, senha ) values (?,?,?) `,
-		Usuario.Nome,
-		Usuario.Email,
-		Usuario.Senha,
+// CreateUser adds a new user to the database.
+func (repository Users) CreateUser(user models.Usuario) (uint64, error) {
+	statement, err := repository.db.Exec(
+		`INSERT INTO Users (nome, email, password) VALUES (?, ?, ?)`,
+		user.Nome,
+		user.Email,
+		user.Senha,
 	)
-	linhasAfetadas, err := statement.RowsAffected()
-	if linhasAfetadas == 0 {
-		return 0, errors.New("nenhuma linha foi afetada, verifique os dados passados")
+	rowsAffected, err := statement.RowsAffected()
+	if rowsAffected == 0 {
+		return 0, errors.New("no rows affected, check the provided data")
 	}
 	if err != nil {
 		return 0, err
 	}
 
-	if erro != nil {
-		return 0, erro
+	if err != nil {
+		return 0, err
 	}
 
-	usuarioID, erro := statement.LastInsertId()
-	if erro != nil {
-		return 0, erro
+	userID, err := statement.LastInsertId()
+	if err != nil {
+		return 0, err
 	}
-	return uint64(usuarioID), nil
+	return uint64(userID), nil
 }
 
-// BuscarPorId busca um usuário pelo ID
-func (repositorio Usuarios) BuscarPorId(usuarioId uint64) (models.Usuario, error) {
-	usuarios := models.Usuario{}
-	erro := repositorio.db.Get(&usuarios,
-		` SELECT id,nome,email,criadoem FROM Usuarios WHERE id = ? `,
-		usuarioId,
+// FindByID finds a user in the database by ID.
+func (repository Users) FindByID(userID uint64) (models.Usuario, error) {
+	user := models.Usuario{}
+	err := repository.db.Get(&user,
+		`SELECT id, nome, email, created_at FROM Users WHERE id = ?`,
+		userID,
 	)
 
-	if usuarios.ID == 0 {
-		return models.Usuario{}, errors.New("nenhum usuário foi encontrado, verifique os dados passados")
+	if user.ID == 0 {
+		return models.Usuario{}, errors.New("no user found, check the provided data")
 	}
 
-	if erro != nil {
-		return models.Usuario{}, erro
+	if err != nil {
+		return models.Usuario{}, err
 	}
-	return usuarios, nil
+	return user, nil
 }
 
-// BuscarUsuario busca todos os usuários salvos no banco
-func (repositorio Usuarios) BuscarUsuarios() ([]models.Usuario, error) {
-	var usuarios []models.Usuario
-	erro := repositorio.db.Select(&usuarios, "SELECT id,nome,email,senha FROM Usuarios ")
-	if len(usuarios) == 0 {
-		return []models.Usuario{}, errors.New("nenhum usuário foi encontrado, verifique os dados fornecidos")
+// FindAllUsers retrieves all users saved in the database.
+func (repository Users) FindAllUsers() ([]models.Usuario, error) {
+	var users []models.Usuario
+	err := repository.db.Select(&users, "SELECT id, nome, email, password FROM Users")
+	if len(users) == 0 {
+		return []models.Usuario{}, errors.New("no users found, check the provided data")
 	}
 
-	if erro != nil {
-		return []models.Usuario{}, erro
+	if err != nil {
+		return []models.Usuario{}, err
 	}
-	return usuarios, nil
+	return users, nil
 }
 
-// AtualizarUsuario Atualiza as informações de um usuário no banco
-func (repositorio Usuarios) AtualizarUsuario(usuarioId uint64, usuario models.Usuario) error {
-	statement, erro := repositorio.db.Exec(
-		` UPDATE Usuarios SET nome =?, email =?, senha =? WHERE id =? `,
-		usuario.Nome,
-		usuario.Email,
-		usuario.Senha,
-		usuarioId,
+// UpdateUser updates user information in the database.
+func (repository Users) UpdateUser(userID uint64, user models.Usuario) error {
+	statement, err := repository.db.Exec(
+		`UPDATE Users SET nome=?, email=?, password=? WHERE id=?`,
+		user.Nome,
+		user.Email,
+		user.Senha,
+		userID,
 	)
-	linhasAfetadas, err := statement.RowsAffected()
+	rowsAffected, err := statement.RowsAffected()
 	if err != nil {
 		return err
 	}
 
-	if linhasAfetadas == 0 {
-		return errors.New("nenhum registro foi afetado, Verifique os dados fornecidos")
+	if rowsAffected == 0 {
+		return errors.New("no records affected, check the provided data")
 	}
 
-	if erro != nil {
-		return erro
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
-// BuscarPorEmail busca um usuário por email e retorna seu id e senha com hash
-func (repositorio Usuarios) BuscarPorEmail(email string) (models.Usuario, error) {
-	usuarios := models.Usuario{}
-	erro := repositorio.db.Get(&usuarios, "SELECT id,senha FROM Usuarios WHERE email = ?", email)
-	if usuarios.ID == 0 {
-		return models.Usuario{}, errors.New("nenhum usuário foi encontrado, verifique os dados fornecidos")
+// FindByEmail finds a user by email and returns its ID and hashed password.
+func (repository Users) FindByEmail(email string) (models.Usuario, error) {
+	user := models.Usuario{}
+	err := repository.db.Get(&user, "SELECT id, password FROM Users WHERE email = ?", email)
+	if user.ID == 0 {
+		return models.Usuario{}, errors.New("no user found, check the provided data")
 	}
-	if erro != nil {
-		return models.Usuario{}, erro
+	if err != nil {
+		return models.Usuario{}, err
 	}
-	return usuarios, nil
+	return user, nil
 }
 
-// DeletarUsuario deleta um usuário do banco de dados
-func (repositorio Usuarios) DeletarUsuario(usuarioId uint64) error {
-	statement, erro := repositorio.db.Exec(
-		` DELETE FROM Usuarios WHERE id =? `,
-		usuarioId,
+// DeleteUser deletes a user from the database.
+func (repository Users) DeleteUser(userID uint64) error {
+	statement, err := repository.db.Exec(
+		`DELETE FROM Users WHERE id = ?`,
+		userID,
 	)
-	linhasAfetadas, err := statement.RowsAffected()
+	rowsAffected, err := statement.RowsAffected()
 	if err != nil {
 		return err
 	}
-	if linhasAfetadas == 0 {
-		return errors.New("nenhum registro foi afetado, Verifique os dados fornecidos")
+	if rowsAffected == 0 {
+		return errors.New("no records affected, check the provided data")
 	}
 
-	if erro != nil {
-		return erro
+	if err != nil {
+		return err
 	}
 
 	return nil
