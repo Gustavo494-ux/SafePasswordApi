@@ -13,13 +13,13 @@ import (
 
 // CreateUser inserts a user into the database.
 func CreateUser(c echo.Context) error {
-	var user models.Usuario
+	var user models.User
 	if err := c.Bind(&user); err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
 
 	if err := user.Prepare("signup"); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusInternalServerError, err)
 	}
 
 	db, err := database.Conectar()
@@ -36,6 +36,10 @@ func CreateUser(c echo.Context) error {
 
 	user, err = repo.FindByID(userId)
 	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	if err := user.Prepare("query"); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
@@ -65,6 +69,10 @@ func FindUser(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, errors.New("no user found"))
 	}
 
+	if err := user.Prepare("query"); err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
 	return c.JSON(http.StatusOK, user)
 }
 
@@ -86,6 +94,12 @@ func FindAllUsers(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, errors.New("no users found"))
 	}
 
+	for i := range users {
+		if err = users[i].Prepare("query"); err != nil {
+			return c.JSON(http.StatusInternalServerError, err)
+		}
+	}
+
 	return c.JSON(http.StatusOK, users)
 }
 
@@ -96,7 +110,7 @@ func UpdateUser(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	var userRequest models.Usuario
+	var userRequest models.User
 	if err := c.Bind(&userRequest); err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
@@ -117,6 +131,10 @@ func UpdateUser(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, errors.New("user not found"))
 	}
 
+	if err := userRequest.Prepare("signup"); err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
 	if err := repo.UpdateUser(userId, userRequest); err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -126,7 +144,10 @@ func UpdateUser(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(http.StatusCreated, userDB)
+	if err := userDB.Prepare("query"); err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	return c.JSON(http.StatusOK, userDB)
 }
 
 // DeleteUser deletes a user from the database.

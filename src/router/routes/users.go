@@ -16,7 +16,7 @@ func UserRoutes(e *echo.Echo) {
 	userGroup.Use(middlewares.Authenticate)
 
 	userGroup.GET("", controllers.FindAllUsers)
-	userGroup.GET("/:userID", controllers.FindUser)
-	userGroup.PUT("/:userID", controllers.UpdateUser)
-	userGroup.DELETE("/:userID", controllers.DeleteUser)
+	userGroup.GET("/:userId", controllers.FindUser)
+	userGroup.PUT("/:userId", controllers.UpdateUser)
+	userGroup.DELETE("/:userId", controllers.DeleteUser)
 }

@@ -14,16 +14,17 @@ import (
 	"github.com/badoux/checkmail"
 )
 
-type Usuario struct {
-	ID       uint64    `json:"id,omitempty" db:"id"`
-	Nome     string    `json:"nome,omitempty" db:"nome"`
-	Email    string    `json:"email,omitempty" db:"email"`
-	Senha    string    `json:"senha,omitempty" db:"senha"`
-	CriadoEm time.Time `json:"criadoEm,omitempty" db:"criadoem"`
+type User struct {
+	ID         uint64    `json:"id,omitempty" db:"id"`
+	Name       string    `json:"name,omitempty" db:"name"`
+	Email      string    `json:"email,omitempty" db:"email"`
+	Email_Hash string    `json:"email_hash,omitempty" db:"email_hash"`
+	Password   string    `json:"password,omitempty" db:"safepassword,omitempty"`
+	Created_at time.Time `json:"created_at,omitempty" db:"created_at"`
 }
 
 // Prepare will call methods to validate and format the received user based on the given stage.
-func (user *Usuario) Prepare(stage string) error {
+func (user *User) Prepare(stage string) error {
 	switch stage {
 	case "signup":
 		if err := user.Validate(stage); err != nil {
@@ -39,8 +40,8 @@ func (user *Usuario) Prepare(stage string) error {
 }
 
 // Validate checks if the user fields are valid based on the given stage.
-func (user *Usuario) Validate(stage string) error {
-	if user.Nome == "" {
+func (user *User) Validate(stage string) error {
+	if user.Name == "" {
 		return errors.New("name is required and cannot be blank")
 	}
 
@@ -52,7 +53,7 @@ func (user *Usuario) Validate(stage string) error {
 		return errors.New("invalid email format")
 	}
 
-	if user.Senha == "" && stage == "signup" {
+	if user.Password == "" && stage == "signup" {
 		return errors.New("password is required and cannot be blank")
 	}
 
@@ -60,18 +61,24 @@ func (user *Usuario) Validate(stage string) error {
 }
 
 // Format trims the leading and trailing spaces of the user's Name and Email fields and applies additional formatting based on the given stage.
-func (user *Usuario) Format(stage string) error {
-	user.Nome = strings.TrimSpace(user.Nome)
+func (user *User) Format(stage string) error {
+	var err error
+	user.Name = strings.TrimSpace(user.Name)
 	user.Email = strings.TrimSpace(user.Email)
 
 	switch stage {
 	case "signup":
 		{
-			senhaHash, err := hashEncrpt.GenerateSHA512(user.Senha)
+			user.Password, err = hashEncrpt.GenerateSHA512(user.Password)
 			if err != nil {
 				return err
 			}
-			user.Senha = senhaHash
+
+			user.Email_Hash, err = hashEncrpt.GenerateSHA512(user.Email)
+			if err != nil {
+				return err
+			}
+
 			if err = user.Encrypt(); err != nil {
 				return err
 			}
@@ -86,17 +93,17 @@ func (user *Usuario) Format(stage string) error {
 }
 
 // GenerateSymmetricEncryptionKey generates a symmetric encryption key based on the user's ID and Password.
-func (user *Usuario) GenerateSymmetricEncryptionKey() ([]byte, error) {
+func (user *User) GenerateSymmetricEncryptionKey() ([]byte, error) {
 	idHash, erro := hashEncrpt.GenerateSHA512(strconv.FormatUint(user.ID, 10))
 	if erro != nil {
 		return []byte{}, erro
 	}
 
 	var senhaHash string
-	if len(user.Senha) == 128 {
-		senhaHash = user.Senha
+	if len(user.Password) == 128 {
+		senhaHash = user.Password
 	} else {
-		senhaHash, erro = hashEncrpt.GenerateSHA512(user.Senha)
+		senhaHash, erro = hashEncrpt.GenerateSHA512(user.Password)
 		if erro != nil {
 			return []byte{}, erro
 		}
@@ -110,9 +117,9 @@ func (user *Usuario) GenerateSymmetricEncryptionKey() ([]byte, error) {
 }
 
 // EncryptAES encrypts the user's Name and Email using AES encryption.
-func (user *Usuario) EncryptAES() error {
+func (user *User) EncryptAES() error {
 	var err error
-	if user.Nome, err = symmetricEncrypt.EncryptDataAES(user.Nome, configs.AESKey); err != nil {
+	if user.Name, err = symmetricEncrypt.EncryptDataAES(user.Name, configs.AESKey); err != nil {
 		return err
 	}
 
@@ -124,9 +131,9 @@ func (user *Usuario) EncryptAES() error {
 }
 
 // DecryptAES decrypts the user's Name and Email using AES decryption.
-func (user *Usuario) DecryptAES() error {
+func (user *User) DecryptAES() error {
 	var err error
-	if user.Nome, err = symmetricEncrypt.DecryptDataAES(user.Nome, configs.AESKey); err != nil {
+	if user.Name, err = symmetricEncrypt.DecryptDataAES(user.Name, configs.AESKey); err != nil {
 		return err
 	}
 
@@ -138,14 +145,14 @@ func (user *Usuario) DecryptAES() error {
 }
 
 // EncryptRSA encrypts the user's Name and Email using RSA encryption.
-func (user *Usuario) EncryptRSA() error {
+func (user *User) EncryptRSA() error {
 	var err error
 	publicKey, err := asymmetrical.ParseRSAPublicKey(configs.RSAPublicKey)
 	if err != nil {
 		return err
 	}
 
-	if user.Nome, err = asymmetrical.EncryptRSA(user.Nome, publicKey); err != nil {
+	if user.Name, err = asymmetrical.EncryptRSA(user.Name, publicKey); err != nil {
 		return err
 	}
 
@@ -156,14 +163,14 @@ func (user *Usuario) EncryptRSA() error {
 }
 
 // DecryptRSA decrypts the user's Name and Email using RSA decryption.
-func (user *Usuario) DecryptRSA() error {
+func (user *User) DecryptRSA() error {
 	var err error
 	privateKey, err := asymmetrical.ParseRSAPrivateKey(configs.RSAPrivateKey)
 	if err != nil {
 		return err
 	}
 
-	if user.Nome, err = asymmetrical.DecryptRSA(user.Nome, privateKey); err != nil {
+	if user.Name, err = asymmetrical.DecryptRSA(user.Name, privateKey); err != nil {
 		return err
 	}
 
@@ -174,7 +181,7 @@ func (user *Usuario) DecryptRSA() error {
 }
 
 // Encrypt encrypts the user's data using both AES and RSA encryption.
-func (user *Usuario) Encrypt() error {
+func (user *User) Encrypt() error {
 	err := user.EncryptAES()
 	if err != nil {
 		return err
@@ -189,7 +196,7 @@ func (user *Usuario) Encrypt() error {
 }
 
 // Decrypt decrypts the user's data using both AES and RSA decryption.
-func (user *Usuario) Decrypt() error {
+func (user *User) Decrypt() error {
 	err := user.DecryptRSA()
 	if err != nil {
 		return err
