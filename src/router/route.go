@@ -8,7 +8,7 @@ import (
 
 func Gerar() *echo.Echo {
 	e := echo.New()
-	router.RotasUsuarios(e)
+	router.UserRoutes(e)
 	router.RotasLogin(e)
 	router.CredentialRoutes(e)
 
