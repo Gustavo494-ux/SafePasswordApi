@@ -10,7 +10,6 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
-
 )
 
 func TestCriarTokenJWT(t *testing.T) {
@@ -32,7 +31,7 @@ func TestValidarToken(t *testing.T) {
 	permissoes["teste"] = "token_de_teste"
 	permissoes["exp"] = time.Now().Add(time.Hour * 6).Unix()
 
-	tokenString, err := token.SignedString([]byte(configs.SecretKey))
+	tokenString, err := token.SignedString([]byte(configs.SecretKeyJWT))
 	if err != nil {
 		t.Errorf("Erro ao criar o token: %v", err)
 	}
