@@ -70,59 +70,45 @@ func loadEnvironmentVariables(Path string) {
 	SecretKeyJWTPath = os.Getenv("SECRET_KEY_JWT_PATH")
 }
 
-func loadOrCreateAESKey() {
-	if len(RSAPrivateKeyPath) == 0 {
-		log.Fatal(errors.New("path key AES empty"))
-	}
-	dirPathCreate := getDirectoryPath(AESKeyPath)
+func createDirectoryOrFileIfNotExists(path string) {
+	createDirectoryIfNotExists(getDirectoryPath(path))
+	createFileIfNotExists(path)
+}
 
-	dirInfo, err := fileHandler.GetFileInfo(dirPathCreate)
+func writeQueryAndCheckFileData(data string, path string) {
+	err := fileHandler.WriteFile(path, data)
 	if err != nil {
-		log.Fatal("Error getting directory info: ", err)
+		log.Fatal("Invalid key, please check: ", path)
 	}
 
-	if dirInfo == nil {
-		err = fileHandler.CreateDirectory(dirPathCreate)
-		if err != nil {
-			log.Fatal("Error creating directory: ", err)
-		}
-	}
-
-	fileInfo, err := fileHandler.GetFileInfo(AESKeyPath)
-	if err != nil {
-		log.Fatal("Error getting file info: ", err)
-	}
-	if fileInfo == nil {
-		err = fileHandler.CreateFile(AESKeyPath)
-		if err != nil {
-			log.Fatal("Error creating file: ", err)
-		}
-	}
-
-	AESKey, err = fileHandler.OpenFile(AESKeyPath)
+	AESKey, err = fileHandler.OpenFile(path)
 	if err != nil {
 		log.Fatal("Error opening file: ", err)
 	}
 
-	if AESKey == "" {
+	if len(AESKey) == 0 {
+		log.Fatal("Invalid key, please check: ", path)
+	}
+}
+
+func loadOrCreateAESKey() {
+	if len(AESKeyPath) == 0 {
+		log.Fatal(errors.New("path key AES empty"))
+	}
+
+	createDirectoryOrFileIfNotExists(AESKeyPath)
+
+	AESKey, err := fileHandler.OpenFile(AESKeyPath)
+	if err != nil {
+		log.Fatal("Error opening file: ", err)
+	}
+
+	if len(AESKey) == 0 {
 		AESKey, err = symmetricEncryp.GenerateRandomAESKey()
 		if err != nil {
 			log.Fatal("Error generate AES KEY, err: ", err)
 		}
-
-		err = fileHandler.WriteFile(AESKeyPath, AESKey)
-		if err != nil {
-			log.Fatal("Invalid AES key, please check: ", AESKeyPath)
-		}
-
-		AESKey, err = fileHandler.OpenFile(AESKeyPath)
-		if err != nil {
-			log.Fatal("Error opening file: ", err)
-		}
-	}
-
-	if AESKey == "" {
-		log.Fatal("Invalid AES key, please check: ", AESKeyPath)
+		writeQueryAndCheckFileData(AESKey, AESKeyPath)
 	}
 }
 
@@ -315,6 +301,33 @@ func loadOrCreateSecretKeyJWT() {
 
 	if SecretKeyJWTString == "" {
 		log.Fatal("Invalid Secret key, please check: ", SecretKeyJWTString)
+	}
+}
+
+func createDirectoryIfNotExists(path string) {
+	dirInfo, err := fileHandler.GetFileInfo(path)
+	if err != nil {
+		log.Fatal("Error getting directory info: ", err)
+	}
+
+	if dirInfo == nil {
+		err = fileHandler.CreateDirectory(path)
+		if err != nil {
+			log.Fatal("Error creating directory: ", err)
+		}
+	}
+}
+
+func createFileIfNotExists(path string) {
+	fileInfo, err := fileHandler.GetFileInfo(AESKeyPath)
+	if err != nil {
+		log.Fatal("Error getting file info: ", err)
+	}
+	if fileInfo == nil {
+		err = fileHandler.CreateFile(AESKeyPath)
+		if err != nil {
+			log.Fatal("Error creating file: ", err)
+		}
 	}
 }
 
