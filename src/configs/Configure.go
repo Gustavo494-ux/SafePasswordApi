@@ -70,27 +70,6 @@ func loadEnvironmentVariables(Path string) {
 	SecretKeyJWTPath = os.Getenv("SECRET_KEY_JWT_PATH")
 }
 
-func createDirectoryOrFileIfNotExists(path string) {
-	createDirectoryIfNotExists(getDirectoryPath(path))
-	createFileIfNotExists(path)
-}
-
-func writeQueryAndCheckFileData(data string, path string) {
-	err := fileHandler.WriteFile(path, data)
-	if err != nil {
-		log.Fatal("Invalid key, please check: ", path)
-	}
-
-	AESKey, err = fileHandler.OpenFile(path)
-	if err != nil {
-		log.Fatal("Error opening file: ", err)
-	}
-
-	if len(AESKey) == 0 {
-		log.Fatal("Invalid key, please check: ", path)
-	}
-}
-
 func loadOrCreateAESKey() {
 	if len(AESKeyPath) == 0 {
 		log.Fatal(errors.New("path key AES empty"))
@@ -113,32 +92,11 @@ func loadOrCreateAESKey() {
 }
 
 func loadOrCreateRSAPrivateKey() {
+	var err error
 	if len(RSAPrivateKeyPath) == 0 {
 		log.Fatal(errors.New("path private key RSA empty"))
 	}
-	dirPathCreate := getDirectoryPath(RSAPrivateKeyPath)
-
-	dirInfo, err := fileHandler.GetFileInfo(dirPathCreate)
-	if err != nil {
-		log.Fatal("Error getting directory info: ", err)
-	}
-	if dirInfo == nil {
-		err = fileHandler.CreateDirectory(dirPathCreate)
-		if err != nil {
-			log.Fatal("Error creating directory: ", err)
-		}
-	}
-
-	fileInfo, err := fileHandler.GetFileInfo(RSAPrivateKeyPath)
-	if err != nil {
-		log.Fatal("Error getting file info: ", err)
-	}
-	if fileInfo == nil {
-		err = fileHandler.CreateFile(RSAPrivateKeyPath)
-		if err != nil {
-			log.Fatal("Error creating file: ", err)
-		}
-	}
+	createDirectoryOrFileIfNotExists(RSAPrivateKeyPath)
 
 	RSAPrivateKey, err = fileHandler.OpenFile(RSAPrivateKeyPath)
 	if err != nil {
@@ -157,10 +115,7 @@ func loadOrCreateRSAPrivateKey() {
 			log.Fatal("Error generating RSA private key, please check: ", RSAPrivateKeyPath)
 		}
 
-		err = fileHandler.WriteFile(RSAPrivateKeyPath, RSAPrivateKey)
-		if err != nil {
-			log.Fatal("Invalid RSA Private key, please check: ", RSAPrivateKeyPath)
-		}
+		writeQueryAndCheckFileData(RSAPrivateKey, RSAPrivateKeyPath)
 
 		RSAPrivateKey, err = fileHandler.OpenFile(RSAPrivateKeyPath)
 		if err != nil {
@@ -304,6 +259,27 @@ func loadOrCreateSecretKeyJWT() {
 	}
 }
 
+func createDirectoryOrFileIfNotExists(path string) {
+	createDirectoryIfNotExists(getDirectoryPath(path))
+	createFileIfNotExists(path)
+}
+
+func writeQueryAndCheckFileData(data string, path string) {
+	err := fileHandler.WriteFile(path, data)
+	if err != nil {
+		log.Fatal("Invalid key, please check: ", path)
+	}
+
+	AESKey, err = fileHandler.OpenFile(path)
+	if err != nil {
+		log.Fatal("Error opening file: ", err)
+	}
+
+	if len(AESKey) == 0 {
+		log.Fatal("Invalid key, please check: ", path)
+	}
+}
+
 func createDirectoryIfNotExists(path string) {
 	dirInfo, err := fileHandler.GetFileInfo(path)
 	if err != nil {
@@ -319,12 +295,12 @@ func createDirectoryIfNotExists(path string) {
 }
 
 func createFileIfNotExists(path string) {
-	fileInfo, err := fileHandler.GetFileInfo(AESKeyPath)
+	fileInfo, err := fileHandler.GetFileInfo(path)
 	if err != nil {
 		log.Fatal("Error getting file info: ", err)
 	}
 	if fileInfo == nil {
-		err = fileHandler.CreateFile(AESKeyPath)
+		err = fileHandler.CreateFile(path)
 		if err != nil {
 			log.Fatal("Error creating file: ", err)
 		}
