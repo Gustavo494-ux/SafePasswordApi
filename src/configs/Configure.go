@@ -133,32 +133,12 @@ func loadOrCreateRSAPrivateKey() {
 }
 
 func loadOrCreateRSAPublicKey() {
+	var err error
 	if len(RSAPublicKeyPath) == 0 {
 		log.Fatal(errors.New("path public key RSA empty"))
 	}
-	dirPathCreate := getDirectoryPath(RSAPublicKeyPath)
 
-	dirInfo, err := fileHandler.GetFileInfo(dirPathCreate)
-	if err != nil {
-		log.Fatal("Error getting directory info: ", err)
-	}
-	if dirInfo == nil {
-		err = fileHandler.CreateDirectory(dirPathCreate)
-		if err != nil {
-			log.Fatal("Error creating directory: ", err)
-		}
-	}
-
-	fileInfo, err := fileHandler.GetFileInfo(RSAPublicKeyPath)
-	if err != nil {
-		log.Fatal("Error getting file info: ", err)
-	}
-	if fileInfo == nil {
-		err = fileHandler.CreateFile(RSAPublicKeyPath)
-		if err != nil {
-			log.Fatal("Error creating file: ", err)
-		}
-	}
+	createDirectoryOrFileIfNotExists(RSAPublicKeyPath)
 
 	RSAPublicKey, err = fileHandler.OpenFile(RSAPublicKeyPath)
 	if err != nil {
@@ -182,10 +162,7 @@ func loadOrCreateRSAPublicKey() {
 			log.Fatal("Error generating RSA public KEY, please check: ", RSAPublicKeyPath)
 		}
 
-		err = fileHandler.WriteFile(RSAPublicKeyPath, RSAPublicKey)
-		if err != nil {
-			log.Fatal("Invalid RSA public KEY, please check: ", RSAPublicKeyPath)
-		}
+		writeQueryAndCheckFileData(RSAPublicKey, RSAPublicKeyPath)
 
 		RSAPublicKey, err = fileHandler.OpenFile(RSAPublicKeyPath)
 		if err != nil {
@@ -273,12 +250,12 @@ func writeQueryAndCheckFileData(data string, path string) {
 		log.Fatal("Invalid key, please check: ", path)
 	}
 
-	AESKey, err = fileHandler.OpenFile(path)
+	Key, err := fileHandler.OpenFile(path)
 	if err != nil {
 		log.Fatal("Error opening file: ", err)
 	}
 
-	if len(AESKey) == 0 {
+	if len(Key) == 0 {
 		log.Fatal("Invalid key, please check: ", path)
 	}
 }
