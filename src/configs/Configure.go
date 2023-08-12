@@ -181,30 +181,7 @@ func loadOrCreateSecretKeyJWT() {
 		log.Fatal(errors.New("path secret key JWT empty"))
 	}
 
-	dirPathCreate := getDirectoryPath(SecretKeyJWTPath)
-
-	dirInfo, err := fileHandler.GetFileInfo(dirPathCreate)
-	if err != nil {
-		log.Fatal("Error getting directory info: ", err)
-	}
-
-	if dirInfo == nil {
-		err = fileHandler.CreateDirectory(dirPathCreate)
-		if err != nil {
-			log.Fatal("Error creating directory: ", err)
-		}
-	}
-
-	fileInfo, err := fileHandler.GetFileInfo(SecretKeyJWTPath)
-	if err != nil {
-		log.Fatal("Error getting file info: ", err)
-	}
-	if fileInfo == nil {
-		err = fileHandler.CreateFile(SecretKeyJWTPath)
-		if err != nil {
-			log.Fatal("Error creating file: ", err)
-		}
-	}
+	createDirectoryOrFileIfNotExists(SecretKeyJWTPath)
 
 	SecretKeyJWTString, err := fileHandler.OpenFile(SecretKeyJWTPath)
 	if err != nil {
@@ -223,19 +200,7 @@ func loadOrCreateSecretKeyJWT() {
 
 		SecretKeyJWTString = randomizeString(fmt.Sprintf("%s,%s", RandomAESKey, RandomAESKeyHash))
 
-		err = fileHandler.WriteFile(SecretKeyJWTPath, SecretKeyJWTString)
-		if err != nil {
-			log.Fatal("Invalid Secret key, please check: ", SecretKeyJWTPath)
-		}
-
-		SecretKeyJWTString, err = fileHandler.OpenFile(SecretKeyJWTPath)
-		if err != nil {
-			log.Fatal("Error opening file: ", err)
-		}
-	}
-
-	if SecretKeyJWTString == "" {
-		log.Fatal("Invalid Secret key, please check: ", SecretKeyJWTString)
+		writeQueryAndCheckFileData(SecretKeyJWTString, SecretKeyJWTPath)
 	}
 }
 
