@@ -89,17 +89,17 @@ WORKDIR "$APP_DIR"
 # ## copia a aplicacao para dentro do container
 COPY ./ ./
 
-# ## check quality
-# RUN goimports
-# RUN gosec ./...
-# RUN go vet .
-# RUN golint ./pkg/...
-# RUN staticcheck .
-# RUN golangci-lint run ./...
-# RUN gocritic check .
+## check quality
+RUN goimports
+RUN gosec ./...
+RUN go vet .
+RUN golint ./pkg/...
+RUN staticcheck .
+RUN golangci-lint run ./...
+RUN gocritic check .
 
-# ## gerar a doc
-# RUN swag init
+## gerar a doc
+RUN swag init
 
 # ## portas de acesso
 EXPOSE "$SERVER_PORT" "$SERVER_GRPC_PORT" "$SERVER_WEBSOCKET_PORT"
