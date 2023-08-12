@@ -1,0 +1,111 @@
+# ## GO lang com live-reload para desenvolvimento
+
+# ! ## STAGE 1 - Maquina para armazenar as dependencias
+FROM golang:1.20.1 AS environment-go-dependences
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt update && apt-get -y upgrade
+RUN apt-get install -y apt-utils build-essential curl libssl-dev libgeos-dev protobuf-compiler libev-dev
+RUN apt install -y wget libncursesw5-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev
+
+# ## install tools
+RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+RUN go install github.com/go-critic/go-critic/cmd/gocritic@latest
+RUN go install github.com/securego/gosec/v2/cmd/gosec@latest
+# RUN go install github.com/joho/godotenv/cmd/godotenv@latest
+RUN go install honnef.co/go/tools/cmd/staticcheck@latest
+RUN go install golang.org/x/tools/cmd/goimports@latest
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+RUN go install github.com/codegangsta/gin@latest
+RUN go install golang.org/x/lint/golint@latest
+
+# ## Configurando variáveis de Ambiente
+ENV GOOS=linux
+ENV GOPRIVATE=*
+ENV GOARCH=amd64
+ENV CGO_ENABLED=0
+ENV GO111MODULE=on
+ENV APP_DIR=/go/src
+ENV TZ=America/Sao_Paulo
+
+# ## diretorio de trabalho
+WORKDIR "$APP_DIR"
+
+# ## limpa chache de contruçao e chache dos modulos
+# ##    - limpa as pastas /bin e /pkg
+# ##    - limpa arquivos de teste,, .o,.d gerados pelo compilador
+RUN go clean -cache -modcache
+
+# ## copia o módulo
+COPY ./go.* ./
+
+# ## baixa as dependencias (-u atuliza a bibliotecas)
+RUN go mod tidy
+RUN go mod download
+RUN go get -u ./...
+RUN go mod tidy
+RUN go mod vendor
+
+# ## Verifica a integridade dos módulos (go.sum)
+RUN go mod verify
+
+# ! ## STAGE 2 - Maquina para excutar o ambiente de desenvolvimento
+FROM environment-go-dependences AS environment-go-dev
+
+# ## Configurando variáveis de Ambiente
+ENV APP_DIR=/go/src
+ENV ENVIRONMENT=development
+
+# # ## server Application
+ENV SERVER_HOST="0.0.0.0"
+ENV SERVER_PORT=2000
+ENV SERVER_READ_TIMEOUT=10
+
+# # ## Server GRPC
+ENV SERVER_GRPC_PROTOCOL="tcp"
+ENV SERVER_GRPC_HOST="0.0.0.0"
+ENV SERVER_GRPC_PORT=2001
+
+# # ## gRPC Client settings: conect no servidor gRPC
+ENV SERVER_GRPC_CLIENT_PROTOCOL="tcp"
+ENV SERVER_GRPC_CLIENT_HOST="0.0.0.0"
+ENV SERVER_GRPC_CLIENT_PORT=2001
+
+# # ## Server WebSocket settings: servidor de protocolo ws://
+ENV SERVER_WEBSOCKET_PROTOCOL="ws"
+ENV SERVER_WEBSOCKET_HOST="0.0.0.0"
+ENV SERVER_WEBSOCKET_PORT=2002
+
+# # ## Server WebSocket settings: servidor para conectar em outro websoket
+ENV SERVER_WEBSOCKET_CLIENT_PROTOCOL="ws"
+ENV SERVER_WEBSOCKET_CLIENT_HOST="0.0.0.0"
+ENV SERVER_WEBSOCKET_CLIENT_PORT=2002
+
+# ## diretorio de trabalho
+WORKDIR "$APP_DIR"
+
+# ## copia a aplicacao para dentro do container
+COPY ./ ./
+
+# ## check quality
+# RUN goimports
+# RUN gosec ./...
+# RUN go vet .
+# RUN golint ./pkg/...
+# RUN staticcheck .
+# RUN golangci-lint run ./...
+# RUN gocritic check .
+
+# ## gerar a doc
+# RUN swag init
+
+# ## portas de acesso
+EXPOSE "$SERVER_PORT" "$SERVER_GRPC_PORT" "$SERVER_WEBSOCKET_PORT"
+
+# ## cria volume para diretorio padrao
+VOLUME "$APP_DIR"
+
+# ## Executa a aplicacao
+CMD ["gin", "--excludeDir", "docs", "-i", "run"]
