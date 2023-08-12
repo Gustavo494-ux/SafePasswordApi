@@ -70,8 +70,8 @@ func GenerateRandomAESKey() (string, error) {
 		return "", err
 	}
 
-	//return hex.EncodeToString(key), nil
-	return string(key), nil
+	return hex.EncodeToString(key), nil
+	// return string(key), nil
 }
 
 // IsTextEncryptedAES checks if the text is encrypted with AES

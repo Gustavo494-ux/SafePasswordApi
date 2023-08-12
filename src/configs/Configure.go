@@ -71,18 +71,21 @@ func loadEnvironmentVariables(Path string) {
 }
 
 func loadOrCreateAESKey() {
+	var err error
 	if len(AESKeyPath) == 0 {
 		log.Fatal(errors.New("path key AES empty"))
 	}
 
 	createDirectoryOrFileIfNotExists(AESKeyPath)
 
-	AESKey, err := fileHandler.OpenFile(AESKeyPath)
+	AESKey, err = fileHandler.OpenFile(AESKeyPath)
 	if err != nil {
 		log.Fatal("Error opening file: ", err)
 	}
 
-	if len(AESKey) == 0 {
+	if len(AESKey) > 32 {
+		AESKey = AESKey[:32]
+	} else {
 		AESKey, err = symmetricEncryp.GenerateRandomAESKey()
 		if err != nil {
 			log.Fatal("Error generate AES KEY, err: ", err)
