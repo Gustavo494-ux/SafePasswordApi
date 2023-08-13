@@ -174,7 +174,17 @@ func GetDirectoryPath(Path string) string {
 }
 
 // CreateDirectoryOrFileIfNotExists : It receives the path of a file and if it doesn't exist it will create all the directories and the file itself.
-func CreateDirectoryOrFileIfNotExists(path string) {
-	CreateDirectoryIfNotExists(GetDirectoryPath(path))
-	CreateFileIfNotExists(path)
+func CreateDirectoryOrFileIfNotExists(path string) (err error) {
+	err = CreateDirectoryIfNotExists(GetDirectoryPath(path))
+	if err != nil {
+		err = fmt.Errorf("error CreateDirectoryIfNotExists : %s", err)
+		return
+	}
+
+	err = CreateFileIfNotExists(path)
+	if err != nil {
+		err = fmt.Errorf("error CreateFileIfNotExists : %s", err)
+		return
+	}
+	return
 }

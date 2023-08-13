@@ -73,7 +73,10 @@ func loadOrCreateKeys() {
 
 // LoadSecretKeyJWT : Loads the Secret Key JWT variable of type byte
 func LoadSecretKeyJWT(Key *string, Path string) {
-	fileHandler.CreateDirectoryOrFileIfNotExists(Path)
+	err := fileHandler.CreateDirectoryOrFileIfNotExists(Path)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	JWT_Key := string(SecretKeyJWT)
 	LoadKey(&JWT_Key, SecretKeyJWTPath, ValidateSecretKeyJWT)
@@ -82,10 +85,15 @@ func LoadSecretKeyJWT(Key *string, Path string) {
 
 // LoadKey : Load a variable from data from a file.
 func LoadKey(Key *string, Path string, proximas ...func(key *string, path string)) {
+	var err error
+
 	if Key != nil && len(*Key) == 0 {
 		dir, fileName := filepath.Split(Path)
-		fileHandler.CreateDirectoryOrFileIfNotExists(Path)
-		var err error
+		err = fileHandler.CreateDirectoryOrFileIfNotExists(Path)
+		if err != nil {
+			log.Fatal("error CreateDirectoryIfNotExists : ", err)
+		}
+
 		*Key, err = fileHandler.OpenFile(dir, fileName)
 		if err != nil {
 			log.Fatal("Error opening file: ", err)
