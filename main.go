@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net/http"
 	"safePasswordApi/src/configs"
 	"safePasswordApi/src/router"
+	"time"
 )
 
 func init() {
@@ -13,8 +12,8 @@ func init() {
 }
 
 func main() {
-	fmt.Println("Rodando API!")
 
 	r := router.Gerar()
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", configs.Port), r))
+	r.Server.WriteTimeout = 30 * time.Second
+	r.Logger.Fatal(r.Start(fmt.Sprintf(":%d", configs.Port)))
 }
