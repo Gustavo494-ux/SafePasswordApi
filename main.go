@@ -8,8 +8,11 @@ import (
 	"safePasswordApi/src/router"
 )
 
-func main() {
+func init() {
 	configs.InitializeConfigurations("./.env")
+}
+
+func main() {
 	fmt.Println("Rodando API!")
 
 	r := router.Gerar()

@@ -9,7 +9,7 @@ import (
 	"io"
 )
 
-// EncryptDataAES encrypts the data using the AES-256 algorithm
+// EncryptDataAES : encrypts the data using the AES-256 algorithm
 func EncryptDataAES(Data string, Key string) (string, error) {
 	keyBytes := []byte(Key)
 
@@ -35,7 +35,7 @@ func EncryptDataAES(Data string, Key string) (string, error) {
 	return hex.EncodeToString(ciphertext), nil
 }
 
-// DecryptDataAES decrypts data using the AES-256 algorithm
+// DecryptDataAES : decrypts data using the AES-256 algorithm
 func DecryptDataAES(Data string, Key string) (string, error) {
 	if !IsTextEncryptedAES(Data) {
 		return "", errors.New("unencrypted data using AES 256")
@@ -62,19 +62,19 @@ func DecryptDataAES(Data string, Key string) (string, error) {
 	return string(ciphertext), nil
 }
 
-// GenerateRandomAESKey generates a random AES-256 key
+// GenerateRandomAESKey : generates a random AES-256 key
 func GenerateRandomAESKey() (string, error) {
-	key := make([]byte, 32)
+	key := make([]byte, 128)
 	_, err := rand.Read(key)
 	if err != nil {
 		return "", err
 	}
 
-	return hex.EncodeToString(key), nil
+	return hex.EncodeToString(key)[:32], nil
 	// return string(key), nil
 }
 
-// IsTextEncryptedAES checks if the text is encrypted with AES
+// IsTextEncryptedAES : checks if the text is encrypted with AES
 func IsTextEncryptedAES(text string) bool {
 	return len([]byte(text)) > aes.BlockSize
 }

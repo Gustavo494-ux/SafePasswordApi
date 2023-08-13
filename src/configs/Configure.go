@@ -1,7 +1,6 @@
 package configs
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -12,7 +11,6 @@ import (
 	"safePasswordApi/src/utility/fileHandler"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -21,30 +19,22 @@ var (
 	StringConnection  = ""
 	Port              = 0
 	SecretKeyJWT      []byte
+	RSAPrivateKey     string
+	RSAPublicKey      string
+	AESKey            string
 	RSAPrivateKeyPath string
 	RSAPublicKeyPath  string
 	AESKeyPath        string
 	SecretKeyJWTPath  string
-	RSAPrivateKey     string
-	RSAPublicKey      string
-	AESKey            string
 )
 
-// InitializeConfigurations performs the necessary setup for the project to be used
+// InitializeConfigurations : Performs the necessary setup for the project to be used
 func InitializeConfigurations(Path string) {
 	loadEnvironmentVariables(Path)
 	loadOrCreateKeys()
 }
 
-// loadOrCreateKeys loads and uses keys or creates keys used in project encryption
-func loadOrCreateKeys() {
-	loadOrCreateAESKey()
-	loadOrCreateRSAPrivateKey()
-	loadOrCreateRSAPublicKey()
-	loadOrCreateSecretKeyJWT()
-}
-
-// loadEnvironmentVariables initializes the environment variables
+// loadEnvironmentVariables : Initializes the environment variables
 func loadEnvironmentVariables(Path string) {
 	err := godotenv.Load(Path)
 	if err != nil {
@@ -70,145 +60,41 @@ func loadEnvironmentVariables(Path string) {
 	SecretKeyJWTPath = os.Getenv("SECRET_KEY_JWT_PATH")
 }
 
-func loadOrCreateAESKey() {
-	var err error
-	if len(AESKeyPath) == 0 {
-		log.Fatal(errors.New("path key AES empty"))
-	}
-
-	createDirectoryOrFileIfNotExists(AESKeyPath)
-
-	AESKey, err = fileHandler.OpenFile(AESKeyPath)
-	if err != nil {
-		log.Fatal("Error opening file: ", err)
-	}
-
-	if len(AESKey) > 32 {
-		AESKey = AESKey[:32]
-	} else {
-		AESKey, err = symmetricEncryp.GenerateRandomAESKey()
-		if err != nil {
-			log.Fatal("Error generate AES KEY, err: ", err)
-		}
-		writeQueryAndCheckFileData(AESKey, AESKeyPath)
-	}
+// loadOrCreateKeys : Loads the keys that will be used during the execution of the project. if the keys do not exist they will be created.
+func loadOrCreateKeys() {
+	go LoadKey(&AESKey, AESKeyPath, ValidateAESKey)
+	func() {
+		LoadKey(&RSAPrivateKey, RSAPrivateKeyPath, ValidateRSAPrivateKey)
+		LoadKey(&RSAPublicKey, RSAPublicKeyPath, ValidateKeyPublicaRSA)
+	}()
+	go LoadKey(nil, SecretKeyJWTPath, LoadSecretKeyJWT)
 }
 
-func loadOrCreateRSAPrivateKey() {
-	var err error
-	if len(RSAPrivateKeyPath) == 0 {
-		log.Fatal(errors.New("path private key RSA empty"))
-	}
-	createDirectoryOrFileIfNotExists(RSAPrivateKeyPath)
+// LoadSecretKeyJWT : Loads the Secret Key JWT variable of type byte
+func LoadSecretKeyJWT(Key *string, Path string) {
+	fileHandler.CreateDirectoryOrFileIfNotExists(Path)
 
-	RSAPrivateKey, err = fileHandler.OpenFile(RSAPrivateKeyPath)
-	if err != nil {
-		log.Fatal("Error opening file: ", err)
-	}
+	JWT_Key := string(SecretKeyJWT)
+	LoadKey(&JWT_Key, SecretKeyJWTPath, ValidateSecretKeyJWT)
+	SecretKeyJWT = []byte(JWT_Key)
+}
 
-	err = asymmetrical.ValidatePrivateKey(RSAPrivateKey)
-	if err != nil {
-		PrivateKey, err := asymmetrical.GeneratePrivateKey(2048)
-		if err != nil {
-			log.Fatal("Error generating RSA private key, please check: ", RSAPrivateKeyPath)
-		}
-
-		RSAPrivateKey, err = asymmetrical.ExportPrivateKey(PrivateKey)
-		if err != nil {
-			log.Fatal("Error generating RSA private key, please check: ", RSAPrivateKeyPath)
-		}
-
-		writeQueryAndCheckFileData(RSAPrivateKey, RSAPrivateKeyPath)
-
-		RSAPrivateKey, err = fileHandler.OpenFile(RSAPrivateKeyPath)
+// LoadKey : Load a variable from data from a file.
+func LoadKey(Key *string, Path string, proximas ...func(key *string, path string)) {
+	if Key != nil && len(*Key) == 0 {
+		fileHandler.CreateDirectoryOrFileIfNotExists(Path)
+		var err error
+		*Key, err = fileHandler.OpenFile(Path)
 		if err != nil {
 			log.Fatal("Error opening file: ", err)
 		}
-
-		err = asymmetrical.ValidatePrivateKey(RSAPrivateKey)
-		if err != nil {
-			log.Fatal("Invalid RSA Private key, please check: ", RSAPrivateKeyPath)
-		}
+	}
+	for _, proxima_funcao := range proximas {
+		proxima_funcao(Key, Path)
 	}
 }
 
-func loadOrCreateRSAPublicKey() {
-	var err error
-	if len(RSAPublicKeyPath) == 0 {
-		log.Fatal(errors.New("path public key RSA empty"))
-	}
-
-	createDirectoryOrFileIfNotExists(RSAPublicKeyPath)
-
-	RSAPublicKey, err = fileHandler.OpenFile(RSAPublicKeyPath)
-	if err != nil {
-		log.Fatal("Error opening file: ", err)
-	}
-
-	err = asymmetrical.ValidatePublicKey(RSAPublicKey)
-	if err != nil {
-		err = asymmetrical.ValidatePrivateKey(RSAPrivateKey)
-		if err != nil {
-			log.Fatal("Invalid RSA Private key, please check: ", RSAPrivateKeyPath)
-		}
-
-		PublicKey, err := asymmetrical.GeneratePublicKey(RSAPrivateKey)
-		if err != nil {
-			log.Fatal("Error generating RSA public KEY, please check: ", RSAPublicKeyPath)
-		}
-
-		RSAPublicKey, err := asymmetrical.ExportPublicKey(PublicKey)
-		if err != nil {
-			log.Fatal("Error generating RSA public KEY, please check: ", RSAPublicKeyPath)
-		}
-
-		writeQueryAndCheckFileData(RSAPublicKey, RSAPublicKeyPath)
-
-		RSAPublicKey, err = fileHandler.OpenFile(RSAPublicKeyPath)
-		if err != nil {
-			log.Fatal("Error opening file: ", err)
-		}
-
-		err = asymmetrical.ValidatePublicKey(RSAPublicKey)
-		if err != nil {
-			log.Fatal("Invalid RSA public KEY, please check: ", RSAPublicKeyPath)
-		}
-	}
-}
-
-func loadOrCreateSecretKeyJWT() {
-	if len(SecretKeyJWTPath) == 0 {
-		log.Fatal(errors.New("path secret key JWT empty"))
-	}
-
-	createDirectoryOrFileIfNotExists(SecretKeyJWTPath)
-
-	SecretKeyJWTString, err := fileHandler.OpenFile(SecretKeyJWTPath)
-	if err != nil {
-		log.Fatal("Error opening file: ", err)
-	}
-
-	if SecretKeyJWTString == "" {
-		RandomAESKey, err := symmetricEncryp.GenerateRandomAESKey()
-		if err != nil {
-			log.Fatal("Error generate Secret KEY, err: ", err)
-		}
-		RandomAESKeyHash, err := hashEncrpt.GenerateSHA512(RandomAESKey)
-		if err != nil {
-			log.Fatal("Error generate Secret KEY, err: ", err)
-		}
-
-		SecretKeyJWTString = randomizeString(fmt.Sprintf("%s,%s", RandomAESKey, RandomAESKeyHash))
-
-		writeQueryAndCheckFileData(SecretKeyJWTString, SecretKeyJWTPath)
-	}
-}
-
-func createDirectoryOrFileIfNotExists(path string) {
-	createDirectoryIfNotExists(getDirectoryPath(path))
-	createFileIfNotExists(path)
-}
-
+// writeQueryAndCheckFileData : Writes the data to the file, reads the same file and checks if the data was written
 func writeQueryAndCheckFileData(data string, path string) {
 	err := fileHandler.WriteFile(path, data)
 	if err != nil {
@@ -225,52 +111,95 @@ func writeQueryAndCheckFileData(data string, path string) {
 	}
 }
 
-func createDirectoryIfNotExists(path string) {
-	dirInfo, err := fileHandler.GetFileInfo(path)
+// ValidateAESKey : Performs AES key validation
+func ValidateAESKey(key *string, path string) {
+	var err error
+	switch {
+	case len(*key) == 0:
+		{
+			*key, err = symmetricEncryp.GenerateRandomAESKey()
+			if err != nil {
+				log.Fatal("Error generate AES KEY, err: ", err)
+			}
+			writeQueryAndCheckFileData(*key, AESKeyPath)
+			LoadKey(key, AESKeyPath, ValidateAESKey)
+		}
+	case len(*key) == 32:
+	case len(*key) >= 32:
+		*key = string(*key)[:32]
+	default:
+		log.Fatal("AES Key invalida")
+	}
+}
+
+// ValidateRSAPrivateKey : Performs RSA Private key validation
+func ValidateRSAPrivateKey(key *string, path string) {
+	err := asymmetrical.ValidatePrivateKey(*key)
 	if err != nil {
-		log.Fatal("Error getting directory info: ", err)
-	}
-
-	if dirInfo == nil {
-		err = fileHandler.CreateDirectory(path)
+		PrivateKey, err := asymmetrical.GeneratePrivateKey(2048)
 		if err != nil {
-			log.Fatal("Error creating directory: ", err)
+			log.Fatal("Error generating RSA private key, please check: ", RSAPrivateKeyPath)
 		}
+
+		*key, err = asymmetrical.ExportPrivateKey(PrivateKey)
+		if err != nil {
+			log.Fatal("Error generating RSA private key, please check: ", RSAPrivateKeyPath)
+		}
+		writeQueryAndCheckFileData(RSAPrivateKey, path)
+		LoadKey(key, path, ValidateRSAPrivateKey)
 	}
 }
 
-func createFileIfNotExists(path string) {
-	fileInfo, err := fileHandler.GetFileInfo(path)
+// ValidateRSAPrivateKey : Performs RSA Public key validation
+func ValidateKeyPublicaRSA(Key *string, Path string) {
+	err := asymmetrical.ValidatePublicKey(*Key)
 	if err != nil {
-		log.Fatal("Error getting file info: ", err)
-	}
-	if fileInfo == nil {
-		err = fileHandler.CreateFile(path)
+		err = asymmetrical.ValidatePrivateKey(RSAPrivateKey)
 		if err != nil {
-			log.Fatal("Error creating file: ", err)
+			log.Fatal("Invalid RSA Private key, please check: ", Path)
 		}
+
+		PublicKey, err := asymmetrical.GeneratePublicKey(RSAPrivateKey)
+		if err != nil {
+			log.Fatal("Error generating RSA public KEY, please check: ", Path)
+		}
+
+		*Key, err = asymmetrical.ExportPublicKey(PublicKey)
+		if err != nil {
+			log.Fatal("Error generating RSA public KEY, please check: ", Path)
+		}
+
+		writeQueryAndCheckFileData(*Key, Path)
+		LoadKey(Key, Path, ValidateKeyPublicaRSA)
 	}
 }
 
-func getDirectoryPath(Path string) string {
-	dirPath := strings.Split(Path, "/")
-	dirPath = append(dirPath[:len(dirPath)-1], dirPath[len(dirPath):]...)
-	dirPathCreate := ""
-	for i, dir := range dirPath {
-		if i > 0 {
-			dirPathCreate += "/"
+// ValidateSecretKeyJWT : Performs SecretKeyJWT validation
+func ValidateSecretKeyJWT(Key *string, Path string) {
+	if len(strings.Trim(*Key, " ")) == 0 {
+		RandomAESKey, err := symmetricEncryp.GenerateRandomAESKey()
+		if err != nil {
+			log.Fatal("Error generate Secret KEY, err: ", err)
 		}
-		dirPathCreate += dir
+		RandomAESKeyHash, err := hashEncrpt.GenerateSHA512(RandomAESKey)
+		if err != nil {
+			log.Fatal("Error generate Secret KEY, err: ", err)
+		}
+
+		*Key = randomizeString(fmt.Sprintf("%s,%s", RandomAESKey, RandomAESKeyHash))
+
+		writeQueryAndCheckFileData(*Key, Path)
+		LoadKey(Key, Path, ValidateSecretKeyJWT)
 	}
-	return dirPathCreate
 }
 
+// randomizeString : Randomly shuffles the string
 func randomizeString(input string) string {
 	// Convert the string to a slice of runes
 	runes := []rune(input)
 
 	// Create a new random source with a specific seed
-	source := rand.NewSource(time.Now().UnixNano())
+	source := rand.NewSource(rand.Int63n(rand.Int63()))
 
 	// Create a new random generator using the source
 	random := rand.New(source)
