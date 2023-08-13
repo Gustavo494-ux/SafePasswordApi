@@ -3,7 +3,6 @@ package configs
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
 	"safePasswordApi/src/security/encrypt/asymmetrical"
 	hashEncrpt "safePasswordApi/src/security/encrypt/hash"
@@ -11,6 +10,7 @@ import (
 	"safePasswordApi/src/utility/fileHandler"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -186,33 +186,12 @@ func ValidateSecretKeyJWT(Key *string, Path string) {
 			log.Fatal("Error generate Secret KEY, err: ", err)
 		}
 
-		*Key = randomizeString(fmt.Sprintf("%s,%s", RandomAESKey, RandomAESKeyHash))
+		*Key, err = hashEncrpt.GenerateSHA512(fmt.Sprintf("%s,%s,%d", RandomAESKey, RandomAESKeyHash, time.Now().Unix()))
+		if err != nil {
+			log.Fatal("Error generate Secret KEY, err: ", err)
+		}
 
 		writeQueryAndCheckFileData(*Key, Path)
 		LoadKey(Key, Path, ValidateSecretKeyJWT)
 	}
-}
-
-// randomizeString : Randomly shuffles the string
-func randomizeString(input string) string {
-	// Convert the string to a slice of runes
-	runes := []rune(input)
-
-	// Create a new random source with a specific seed
-	source := rand.NewSource(rand.Int63n(rand.Int63()))
-
-	// Create a new random generator using the source
-	random := rand.New(source)
-
-	// Shuffle the runes using Fisher-Yates algorithm
-	length := len(runes)
-	for i := length - 1; i > 0; i-- {
-		j := random.Intn(i + 1)
-		runes[i], runes[j] = runes[j], runes[i]
-	}
-
-	// Convert the slice of runes back to a string
-	randomizedString := string(runes)
-
-	return randomizedString
 }
