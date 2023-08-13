@@ -1,6 +1,7 @@
 package fileHandler_test
 
 import (
+	// "fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -12,11 +13,11 @@ import (
 const (
 	fileName      = "testfile.txt"
 	directoryName = "directoryTest"
-	directoryPath = "E:/Projects/go/src/SafePasswordApi/src/test"
 )
 
 func TestCreateFile(t *testing.T) {
-	err := fileHandler.CreateFile(fileName)
+	dir, _ := os.Getwd()
+	err := fileHandler.CreateFile(dir, fileName)
 	if err != nil {
 		t.Errorf("CreateFile failed with error: %s", err)
 	}
@@ -24,6 +25,7 @@ func TestCreateFile(t *testing.T) {
 }
 
 func TestOpenFile(t *testing.T) {
+	dir, _ := os.Getwd()
 	expectedContent := "Test file content"
 	err := ioutil.WriteFile(fileName, []byte(expectedContent), 0644)
 	if err != nil {
@@ -31,7 +33,7 @@ func TestOpenFile(t *testing.T) {
 	}
 	defer os.Remove(fileName)
 
-	content, err := fileHandler.OpenFile(fileName)
+	content, err := fileHandler.OpenFile(dir, fileName)
 	if err != nil {
 		t.Errorf("OpenFile failed with error: %s", err)
 	}
@@ -42,8 +44,9 @@ func TestOpenFile(t *testing.T) {
 }
 
 func TestWriteFile(t *testing.T) {
+	dir, _ := os.Getwd()
 	content := "Test file content"
-	err := fileHandler.WriteFile(fileName, content)
+	err := fileHandler.WriteFile(dir, fileName, content)
 	if err != nil {
 		t.Errorf("WriteFile failed with error: %s", err)
 	}
@@ -63,18 +66,23 @@ func TestAppendToFile(t *testing.T) {
 	initialContent := "Initial content"
 	appendedContent := "Appended content"
 
-	err := ioutil.WriteFile(fileName, []byte(initialContent), 0644)
+	directoryPath, _ := os.Getwd()
+	// directoryPath = fmt.Sprintf("%s/fileHandler", directoryPath)
+	fullPath := strings.ReplaceAll(filepath.Join(directoryPath, fileName), "\\", "/")
+	directoryPath = directoryPath + "\\"
+
+	err := ioutil.WriteFile(fullPath, []byte(initialContent), 0644)
 	if err != nil {
 		t.Fatalf("Failed to write test file: %s", err)
 	}
-	defer os.Remove(fileName)
+	defer os.Remove(fullPath)
 
-	err = fileHandler.AppendToFile(fileName, appendedContent)
+	err = fileHandler.AppendToFile(directoryPath, fileName, appendedContent)
 	if err != nil {
 		t.Errorf("AppendToFile failed with error: %s", err)
 	}
 
-	fileContent, err := ioutil.ReadFile(fileName)
+	fileContent, err := ioutil.ReadFile(fullPath)
 	if err != nil {
 		t.Fatalf("Failed to read test file: %s", err)
 	}
@@ -86,12 +94,14 @@ func TestAppendToFile(t *testing.T) {
 }
 
 func TestDeleteFile(t *testing.T) {
-	file, err := os.Create(fileName)
+	dir, _ := os.Getwd()
+	fullPath := filepath.Join(dir, fileName)
+	file, err := os.Create(fullPath)
 	if err != nil {
 		t.Errorf("CreateFile failed with error: %s", err)
 	}
 	file.Close()
-	fileHandler.DeleteFile(fileName)
+	fileHandler.DeleteFile(dir, fileName)
 
 	_, err = os.Stat(fileName)
 	if !os.IsNotExist(err) {
@@ -100,24 +110,29 @@ func TestDeleteFile(t *testing.T) {
 }
 
 func TestRenameFile(t *testing.T) {
+	dir, _ := os.Getwd()
 	newFileName := "newfile.txt"
-	err := ioutil.WriteFile(fileName, []byte("Test file content"), 0644)
+
+	fullPath_initial := strings.ReplaceAll(filepath.Join(dir, fileName), "\\", "/")
+	fullPath_rename := strings.ReplaceAll(filepath.Join(dir, newFileName), "\\", "/")
+
+	err := ioutil.WriteFile(fullPath_initial, []byte("Test file content"), 0644)
 	if err != nil {
 		t.Fatalf("Failed to write test file: %s", err)
 	}
 	defer os.Remove(newFileName)
 
-	err = fileHandler.RenameFile(fileName, newFileName)
+	err = fileHandler.RenameFile(dir, fileName, newFileName)
 	if err != nil {
 		t.Errorf("RenameFile failed with error: %s", err)
 	}
 
-	_, err = os.Stat(fileName)
+	_, err = os.Stat(fullPath_initial)
 	if !os.IsNotExist(err) {
 		t.Errorf("RenameFile did not rename the file as expected")
 	}
 
-	_, err = os.Stat(newFileName)
+	_, err = os.Stat(fullPath_rename)
 	if os.IsNotExist(err) {
 		t.Errorf("RenameFile did not create the renamed file as expected")
 	}

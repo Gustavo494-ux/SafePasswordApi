@@ -8,8 +8,8 @@ import (
 )
 
 // CreateFile : creates a new file with the specified name
-func CreateFile(filename string) error {
-	file, err := os.Create(filename)
+func CreateFile(directoryPath string, filename string) error {
+	file, err := os.Create(strings.ReplaceAll(filepath.Join(directoryPath, filename), "\\", "/"))
 	if err != nil {
 		return err
 	}
@@ -18,8 +18,8 @@ func CreateFile(filename string) error {
 }
 
 // OpenFile : open an existing file for reading
-func OpenFile(filename string) (string, error) {
-	data, err := os.ReadFile(filename)
+func OpenFile(directoryPath string, filename string) (string, error) {
+	data, err := os.ReadFile(strings.ReplaceAll(filepath.Join(directoryPath, filename), "\\", "/"))
 	if err != nil {
 		return "", err
 	}
@@ -27,8 +27,9 @@ func OpenFile(filename string) (string, error) {
 }
 
 // WriteFile : writes the given content to a file
-func WriteFile(filename string, content string) error {
-	err := os.WriteFile(filename, []byte(content), 0644)
+func WriteFile(directoryPath string, filename string, content string) error {
+	fullPath := strings.ReplaceAll(filepath.Join(directoryPath, filename), "\\", "/")
+	err := os.WriteFile(fullPath, []byte(content), 0600)
 	if err != nil {
 		return err
 	}
@@ -36,8 +37,10 @@ func WriteFile(filename string, content string) error {
 }
 
 // AppendToFile : appends the provided content to an existing file
-func AppendToFile(filename string, content string) error {
-	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
+func AppendToFile(directoryPath string, filename string, content string) error {
+	file, err := os.OpenFile(
+		strings.ReplaceAll(filepath.Join(directoryPath, filename), "\\", "/"),
+		os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		return err
 	}
@@ -47,13 +50,13 @@ func AppendToFile(filename string, content string) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
 // DeleteFile : delete a file
-func DeleteFile(filename string) error {
-	err := os.Remove(filename)
+func DeleteFile(directoryPath string, filename string) error {
+	fullPath := strings.ReplaceAll(filepath.Join(directoryPath, filename), "\\", "/")
+	err := os.Remove(fullPath)
 	if err != nil {
 		return err
 	}
@@ -61,8 +64,10 @@ func DeleteFile(filename string) error {
 }
 
 // RenameFile : rename a file
-func RenameFile(oldFilename, newFilename string) error {
-	err := os.Rename(oldFilename, newFilename)
+func RenameFile(directoryPath string, oldFilename, newFilename string) error {
+	fullPathOldFilename := strings.ReplaceAll(filepath.Join(directoryPath, oldFilename), "\\", "/")
+	fullPathNewFilename := strings.ReplaceAll(filepath.Join(directoryPath, newFilename), "\\", "/")
+	err := os.Rename(fullPathOldFilename, fullPathNewFilename)
 	if err != nil {
 		return err
 	}
@@ -89,7 +94,7 @@ func GetFileList(directory string) ([]string, error) {
 
 // CreateDirectory : creates a directory at the specified path
 func CreateDirectory(path string) error {
-	err := os.MkdirAll(path, 0755)
+	err := os.MkdirAll(path, 0750)
 	if err != nil {
 		return fmt.Errorf("error creating directory: %v", err)
 	}
@@ -140,12 +145,13 @@ func CreateDirectoryIfNotExists(path string) (err error) {
 
 // CreateFileIfNotExists : Verifica se o arquivo Existe, caso não exista o mesmo será criado
 func CreateFileIfNotExists(path string) (err error) {
+	dir, fileName := filepath.Split(path)
 	fileInfo, err := GetFileInfo(path)
 	if err != nil {
 		err = fmt.Errorf("error getting file info: %s", err)
 	}
 	if fileInfo == nil {
-		err = CreateFile(path)
+		err = CreateFile(dir, fileName)
 		if err != nil {
 			err = fmt.Errorf("error creating file: %s", err)
 		}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"safePasswordApi/src/security/encrypt/asymmetrical"
 	hashEncrpt "safePasswordApi/src/security/encrypt/hash"
 	symmetricEncryp "safePasswordApi/src/security/encrypt/symmetrical"
@@ -82,9 +83,10 @@ func LoadSecretKeyJWT(Key *string, Path string) {
 // LoadKey : Load a variable from data from a file.
 func LoadKey(Key *string, Path string, proximas ...func(key *string, path string)) {
 	if Key != nil && len(*Key) == 0 {
+		dir, fileName := filepath.Split(Path)
 		fileHandler.CreateDirectoryOrFileIfNotExists(Path)
 		var err error
-		*Key, err = fileHandler.OpenFile(Path)
+		*Key, err = fileHandler.OpenFile(dir, fileName)
 		if err != nil {
 			log.Fatal("Error opening file: ", err)
 		}
@@ -96,12 +98,13 @@ func LoadKey(Key *string, Path string, proximas ...func(key *string, path string
 
 // writeQueryAndCheckFileData : Writes the data to the file, reads the same file and checks if the data was written
 func writeQueryAndCheckFileData(data string, path string) {
-	err := fileHandler.WriteFile(path, data)
+	dir, fileName := filepath.Split(path)
+	err := fileHandler.WriteFile(dir, fileName, data)
 	if err != nil {
 		log.Fatal("Invalid key, please check: ", path)
 	}
 
-	Key, err := fileHandler.OpenFile(path)
+	Key, err := fileHandler.OpenFile(dir, fileName)
 	if err != nil {
 		log.Fatal("Error opening file: ", err)
 	}
