@@ -98,8 +98,8 @@ RUN staticcheck .
 RUN golangci-lint run ./...
 RUN gocritic check .
 
-## gerar a doc
-RUN swag init
+# ## gerar a doc
+# RUN swag init
 
 # ## portas de acesso
 EXPOSE "$SERVER_PORT" "$SERVER_GRPC_PORT" "$SERVER_WEBSOCKET_PORT"
