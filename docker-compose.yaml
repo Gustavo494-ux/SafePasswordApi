@@ -33,9 +33,9 @@ services:
       context: ./
       dockerfile : Dockerfile.dev
     container_name: dev
-    working_dir: ./go/src
+    working_dir: /go/src
     volumes:
-      - .:/go/src
+      - ./:/go/src
     restart: always
     ports:
       - ${API_PORT}:${API_PORT}
