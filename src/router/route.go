@@ -3,6 +3,7 @@ package router
 import (
 	"net/http"
 	router "safePasswordApi/src/router/routes"
+	"safePasswordApi/src/routines"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -12,6 +13,7 @@ import (
 func Gerar() *echo.Echo {
 	e := echo.New()
 	e.GET("/health", func(c echo.Context) error {
+		c.Response().Before(routines.AnalyzingCode)
 		return c.String(http.StatusOK, time.Now().Format(time.RFC3339Nano))
 	})
 
