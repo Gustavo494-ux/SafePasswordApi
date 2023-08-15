@@ -2,7 +2,7 @@ package fileHandler_test
 
 import (
 	// "fmt"
-	"io/ioutil"
+	// "io/ioutil"
 	"os"
 	"path/filepath"
 	"safePasswordApi/src/utility/fileHandler"
@@ -27,7 +27,7 @@ func TestCreateFile(t *testing.T) {
 func TestOpenFile(t *testing.T) {
 	dir, _ := os.Getwd()
 	expectedContent := "Test file content"
-	err := ioutil.WriteFile(fileName, []byte(expectedContent), 0644)
+	err := os.WriteFile(fileName, []byte(expectedContent), 0644)
 	if err != nil {
 		t.Fatalf("Failed to write test file: %s", err)
 	}
@@ -52,7 +52,7 @@ func TestWriteFile(t *testing.T) {
 	}
 	defer os.Remove(fileName)
 
-	fileContent, err := ioutil.ReadFile(fileName)
+	fileContent, err := os.ReadFile(fileName)
 	if err != nil {
 		t.Fatalf("Failed to read test file: %s", err)
 	}
@@ -71,7 +71,7 @@ func TestAppendToFile(t *testing.T) {
 	fullPath := strings.ReplaceAll(filepath.Join(directoryPath, fileName), "\\", "/")
 	directoryPath = directoryPath + "\\"
 
-	err := ioutil.WriteFile(fullPath, []byte(initialContent), 0644)
+	err := os.WriteFile(fullPath, []byte(initialContent), 0644)
 	if err != nil {
 		t.Fatalf("Failed to write test file: %s", err)
 	}
@@ -82,7 +82,7 @@ func TestAppendToFile(t *testing.T) {
 		t.Errorf("AppendToFile failed with error: %s", err)
 	}
 
-	fileContent, err := ioutil.ReadFile(fullPath)
+	fileContent, err := os.ReadFile(fullPath)
 	if err != nil {
 		t.Fatalf("Failed to read test file: %s", err)
 	}
@@ -101,7 +101,10 @@ func TestDeleteFile(t *testing.T) {
 		t.Errorf("CreateFile failed with error: %s", err)
 	}
 	file.Close()
-	fileHandler.DeleteFile(dir, fileName)
+	err = fileHandler.DeleteFile(dir, fileName)
+	if err != nil {
+		t.Errorf("Error deleting file: %s", err)
+	}
 
 	_, err = os.Stat(fileName)
 	if !os.IsNotExist(err) {
@@ -116,7 +119,7 @@ func TestRenameFile(t *testing.T) {
 	fullPath_initial := strings.ReplaceAll(filepath.Join(dir, fileName), "\\", "/")
 	fullPath_rename := strings.ReplaceAll(filepath.Join(dir, newFileName), "\\", "/")
 
-	err := ioutil.WriteFile(fullPath_initial, []byte("Test file content"), 0644)
+	err := os.WriteFile(fullPath_initial, []byte("Test file content"), 0644)
 	if err != nil {
 		t.Fatalf("Failed to write test file: %s", err)
 	}
@@ -140,16 +143,23 @@ func TestRenameFile(t *testing.T) {
 
 func TestGetFileList(t *testing.T) {
 	// Create a temporary directory for testing purposes
-	tempDir, err := ioutil.TempDir("", "test_directory")
+	currentDirectory, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Error fetching current directory path, err: %s", err)
+	}
+
+	fullPath := strings.ReplaceAll(filepath.Join(currentDirectory, "test_directory"), "\\", "/")
+
+	err = os.MkdirAll(fullPath, 0750)
 	if err != nil {
 		t.Fatalf("Failed to create temporary directory: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer os.RemoveAll("test_directory")
 
 	// Create test files inside the directory
 	testFiles := []string{"file1.txt", "file2.txt", "file3.txt"}
 	for _, filename := range testFiles {
-		filePath := filepath.Join(tempDir, filename)
+		filePath := filepath.Join(fullPath, filename)
 		file, err := os.Create(filePath)
 		if err != nil {
 			t.Fatalf("Failed to create test file: %v", err)
@@ -158,7 +168,7 @@ func TestGetFileList(t *testing.T) {
 	}
 
 	// Execute the GetFileList function on the test directory
-	fileList, err := fileHandler.GetFileList(tempDir)
+	fileList, err := fileHandler.GetFileList(fullPath)
 	if err != nil {
 		t.Fatalf("Error getting file list: %v", err)
 	}
@@ -190,9 +200,6 @@ func TestCreateDirectory(t *testing.T) {
 	// Create a slice of folder names
 	folders := []string{"folder1", "folder2", "folder3", "folder4", "folder5", "folder6", "folder7", "folder8", "folder9", "folder10"}
 
-	// Slice to store paths of created directories
-	createdDirectories := []string{}
-
 	// Iterate over the folders slice
 	for _, folder := range folders {
 		// Construct the full path for each directory
@@ -202,9 +209,6 @@ func TestCreateDirectory(t *testing.T) {
 		err := fileHandler.CreateDirectory(path)
 		if err != nil {
 			t.Errorf("Failed to create directory: %v", err)
-		} else {
-			// Append the path to the created directories slice
-			createdDirectories = append(createdDirectories, path)
 		}
 	}
 
