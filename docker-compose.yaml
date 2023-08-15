@@ -1,6 +1,6 @@
 version: '3'
-
-
+# Os containers safepassword e dev não podem subir juntos, pois a porta da api vai conflitar. 
+# utilizaremos o Dev apenas para testar o projeto. e o Safepassword para deixar ele rodando no servidor para ser utilizado. 
 services:
   SafePassword_Mysql:
     image: mysql:8
@@ -17,16 +17,16 @@ services:
     volumes:
       - /e/Projetos/go/src/SafePasswordApi/Mysql:/var/lib/mysql                                                                                                                                                                                                                   
 
-  safepassword:
-    build: ./
-    container_name: safepassword
-    # volumes:
-    #   - .:/go/src
-    restart: always
-    ports:
-      - ${API_PORT}:${API_PORT}
-    depends_on:
-      - SafePassword_Mysql
+  # safepassword:
+  #   build: ./
+  #   container_name: safepassword
+  #   # volumes:
+  #   #   - .:/go/src
+  #   restart: always
+  #   ports:
+  #     - ${API_PORT}:${API_PORT}
+  #   depends_on:
+  #     - SafePassword_Mysql
   
   dev:
     build: 
@@ -41,6 +41,5 @@ services:
       - ${API_PORT}:${API_PORT}
     depends_on:
       - SafePassword_Mysql
-
 
 # docker volume create --driver local --opt type=none --opt device=/e/Projetos/go/src/SafePasswordApi/Mysql --opt o=bind vol_mysql_safepassword
