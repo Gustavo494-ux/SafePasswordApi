@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-var UserPath_DotEnv = "./../../.env"
 var usuarioCredentials = []models.User{
 	{
 		ID:         1,
@@ -33,7 +32,7 @@ var usuarioCredentials = []models.User{
 }
 
 func TestUser_Preparar(t *testing.T) {
-	configs.InitializeConfigurations(UserPath_DotEnv)
+	configs.InitializeConfigurations()
 	for _, usuario := range usuarioCredentials {
 		err := usuario.Prepare("signup")
 		if err != nil {
@@ -96,7 +95,7 @@ func TestUser_Validar_EmptyPassword(t *testing.T) {
 }
 
 func TestUser_Formatar_Signup(t *testing.T) {
-	configs.InitializeConfigurations(UserPath_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	for _, usuario := range usuarioCredentials {
 		err = usuario.Format("signup")
@@ -108,7 +107,7 @@ func TestUser_Formatar_Signup(t *testing.T) {
 }
 
 func TestUser_Encrypt(t *testing.T) {
-	configs.InitializeConfigurations(UserPath_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	for _, usuario := range usuarioCredentials {
 		err = usuario.Encrypt()
@@ -119,7 +118,7 @@ func TestUser_Encrypt(t *testing.T) {
 }
 
 func TestUser_Decrypt(t *testing.T) {
-	configs.InitializeConfigurations(UserPath_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	for _, usuario := range usuarioCredentials {
 		err = usuario.Decrypt()
@@ -130,7 +129,7 @@ func TestUser_Decrypt(t *testing.T) {
 }
 
 func TestUser_EncryptAES(t *testing.T) {
-	configs.InitializeConfigurations(UserPath_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	for _, usuario := range usuarioCredentials {
 		err = usuario.EncryptAES()
@@ -141,7 +140,7 @@ func TestUser_EncryptAES(t *testing.T) {
 }
 
 func TestUser_DecryptAES(t *testing.T) {
-	configs.InitializeConfigurations(UserPath_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	for _, usuario := range usuarioCredentials {
 		err = usuario.DecryptAES()
@@ -152,7 +151,7 @@ func TestUser_DecryptAES(t *testing.T) {
 }
 
 func TestUser_EncryptDecryptAES(t *testing.T) {
-	configs.InitializeConfigurations(UserPath_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 
 	// Encrypt usuarios
@@ -184,7 +183,7 @@ func TestUser_EncryptDecryptAES(t *testing.T) {
 }
 
 func TestUser_EncryptRSA(t *testing.T) {
-	configs.InitializeConfigurations(UserPath_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	for _, usuario := range usuarioCredentials {
 		err = usuario.EncryptRSA()
@@ -195,7 +194,7 @@ func TestUser_EncryptRSA(t *testing.T) {
 }
 
 func TestUser_DecryptRSA(t *testing.T) {
-	configs.InitializeConfigurations(UserPath_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	for _, usuario := range usuarioCredentials {
 		err = usuario.DecryptRSA()
@@ -206,7 +205,7 @@ func TestUser_DecryptRSA(t *testing.T) {
 }
 
 func TestUser_EncryptDecryptRSA(t *testing.T) {
-	configs.InitializeConfigurations(UserPath_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 
 	// Encrypt usuarios

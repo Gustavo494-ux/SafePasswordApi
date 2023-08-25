@@ -161,7 +161,7 @@ func CreateFileIfNotExists(path string) (err error) {
 
 // GetDirectoryPath : Receive the path of a file and extract the path of the directory where this file will be created
 func GetDirectoryPath(Path string) string {
-	dirPath := strings.Split(Path, "/")
+	dirPath := strings.Split(strings.ReplaceAll(Path, "\\", "/"), "/")
 	dirPath = append(dirPath[:len(dirPath)-1], dirPath[len(dirPath):]...)
 	dirPathCreate := ""
 	for i, dir := range dirPath {
@@ -187,4 +187,49 @@ func CreateDirectoryOrFileIfNotExists(path string) (err error) {
 		return
 	}
 	return
+}
+
+// GetPathUntilFolder : retorna o caminho até o nível da pasta desejada em um caminho completo.
+func GetPathUntilFolder(path string, folderName string) (string, error) {
+	// Procurar a posição da última ocorrência do nome da pasta no caminho
+	index := strings.LastIndex(strings.ToLower(path), folderName)
+	if index == -1 {
+		return "", fmt.Errorf("a pasta '%s' não foi encontrada no caminho '%s'", folderName, path)
+	}
+
+	// Obter o caminho até a última ocorrência do nome da pasta
+	dirUntilFolder := path[:index+len(folderName)]
+	return dirUntilFolder, nil
+}
+
+// GetSourceDirectory : returns the absolute path to the root directory of the projectreturns the absolute path to the root directory of the project
+func GetSourceDirectory() (rootDirectoryPath string, err error) {
+	currentDirectoryPath, err := os.Getwd()
+	if err != nil {
+		return
+	}
+	rootDirectoryPath, err = GetPathUntilFolder(currentDirectoryPath, "safepasswordapi")
+	return
+}
+
+// GetAbsoluteOrRootConcatenatedPath : function to check if the given path is absolute. case will not be set to the root directory of the project + the last directory of the given path
+func GetAbsoluteOrRootConcatenatedPath(Path string) (string, error) {
+	Path = filepath.FromSlash(Path)
+	if filepath.IsAbs(Path) {
+		return Path, nil
+	}
+
+	RootDirectory, err := GetSourceDirectory()
+	if err != nil {
+		return "", err
+	}
+
+	// Get last directory and file name from path
+	dir, file := filepath.Split(Path)
+	dir = strings.TrimSuffix(dir, string(filepath.Separator))
+	file = strings.TrimPrefix(file, string(filepath.Separator))
+
+	// Concatenate the last directory and filename with the root path
+	absolutePath := filepath.Join(RootDirectory, dir, file)
+	return absolutePath, nil
 }

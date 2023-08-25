@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	configs.InitializeConfigurations("./.env")
+	configs.InitializeConfigurations()
 }
 
 func main() {

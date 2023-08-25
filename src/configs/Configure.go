@@ -30,14 +30,20 @@ var (
 )
 
 // InitializeConfigurations : Performs the necessary setup for the project to be used
-func InitializeConfigurations(Path string) {
-	loadEnvironmentVariables(Path)
+func InitializeConfigurations() {
+	loadEnvironmentVariables()
+	ValidatePaths()
 	loadOrCreateKeys()
 }
 
 // loadEnvironmentVariables : Initializes the environment variables
-func loadEnvironmentVariables(Path string) {
-	err := godotenv.Load(Path)
+func loadEnvironmentVariables() {
+	Path, err := fileHandler.GetSourceDirectory()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(Path)
+	err = godotenv.Load(fmt.Sprintf("%s/.env", Path))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,6 +65,15 @@ func loadEnvironmentVariables(Path string) {
 	RSAPublicKeyPath = os.Getenv("RSA_PUBLIC_KEY_PATH")
 	AESKeyPath = os.Getenv("AES_KEY_PATH")
 	SecretKeyJWTPath = os.Getenv("SECRET_KEY_JWT_PATH")
+
+}
+
+// ValidatePaths : Uses the GetAbsoluteOrRootConcatenatedPathKeys function to check if the given path is absolute. case will not be set to the root directory of the project + the last directory of the given path
+func ValidatePaths() {
+	GetAbsoluteOrRootConcatenatedPathKeys(&RSAPrivateKeyPath)
+	GetAbsoluteOrRootConcatenatedPathKeys(&RSAPublicKeyPath)
+	GetAbsoluteOrRootConcatenatedPathKeys(&AESKeyPath)
+	GetAbsoluteOrRootConcatenatedPathKeys(&SecretKeyJWTPath)
 }
 
 // loadOrCreateKeys : Loads the keys that will be used during the execution of the project. if the keys do not exist they will be created.
@@ -91,7 +106,7 @@ func LoadKey(Key *string, Path string, proximas ...func(key *string, path string
 		dir, fileName := filepath.Split(Path)
 		err = fileHandler.CreateDirectoryOrFileIfNotExists(Path)
 		if err != nil {
-			log.Fatal("error CreateDirectoryIfNotExists : ", err)
+			log.Fatal("error CreateDirectoryOrFileIfNotExists : ", err)
 		}
 
 		*Key, err = fileHandler.OpenFile(dir, fileName)
@@ -132,8 +147,8 @@ func ValidateAESKey(key *string, path string) {
 			if err != nil {
 				log.Fatal("Error generate AES KEY, err: ", err)
 			}
-			writeQueryAndCheckFileData(*key, AESKeyPath)
-			LoadKey(key, AESKeyPath, ValidateAESKey)
+			writeQueryAndCheckFileData(*key, path)
+			LoadKey(key, path, ValidateAESKey)
 		}
 	case len(*key) == 32:
 	case len(*key) >= 32:
@@ -205,4 +220,14 @@ func ValidateSecretKeyJWT(Key *string, Path string) {
 		writeQueryAndCheckFileData(*Key, Path)
 		LoadKey(Key, Path, ValidateSecretKeyJWT)
 	}
+}
+
+// GetAbsolutePathAbsolutePathRhootDirectory :function to check if the given path is absolute. case will not be set to the root directory of the project + the last directory of the given path
+func GetAbsoluteOrRootConcatenatedPathKeys(Path *string) string {
+	var err error
+	*Path, err = fileHandler.GetAbsoluteOrRootConcatenatedPath(*Path)
+	if err != nil {
+		log.Fatal("error GetAbsoluteOrRootConcatenatedPath : ", err)
+	}
+	return *Path
 }

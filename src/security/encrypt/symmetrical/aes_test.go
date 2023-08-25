@@ -6,11 +6,9 @@ import (
 	"testing"
 )
 
-var Path_DotEnv = "./../../../../.env"
-
 // TestEncryptDataAES tests the EncryptDataAES function
 func TestEncryptDataAES(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	data := "secretdata"
 
 	ciphertext, err := symmetricEncryp.EncryptDataAES(data, configs.AESKey)
@@ -25,7 +23,7 @@ func TestEncryptDataAES(t *testing.T) {
 
 // TestDecryptDataAES_ValidData tests the DecryptDataAES function with valid ciphertext
 func TestDecryptDataAES_ValidData(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	data := "secretdata"
 
 	ciphertext, err := symmetricEncryp.EncryptDataAES(data, configs.AESKey)
@@ -45,7 +43,7 @@ func TestDecryptDataAES_ValidData(t *testing.T) {
 
 // TestDecryptDataAES_InvalidCiphertext tests the DecryptDataAES function with invalid ciphertext
 func TestDecryptDataAES_InvalidCiphertext(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 
 	_, err := symmetricEncryp.DecryptDataAES("invalidciphertext", configs.AESKey)
 	if err == nil {

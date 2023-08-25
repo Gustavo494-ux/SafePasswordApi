@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-var Path_DotEnv = "./../../.env"
 var credentials = []models.Credencial{
 	{
 		Id:        1,
@@ -102,7 +101,7 @@ var credentials = []models.Credencial{
 }
 
 func TestCredencial_Prepare(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	for _, credential := range credentials {
 		err := credential.Prepare("saveData")
 		if err != nil {
@@ -161,7 +160,7 @@ func TestValidate_SenhaVazia(t *testing.T) {
 }
 
 func TestFormat_SaveData(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	for _, credential := range credentials {
 		err = credential.Format("saveData")
@@ -173,7 +172,7 @@ func TestFormat_SaveData(t *testing.T) {
 }
 
 func TestFormat_RetrieveData(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	for _, credential := range credentials {
 		err = credential.Format("retrieveData")
@@ -185,7 +184,7 @@ func TestFormat_RetrieveData(t *testing.T) {
 }
 
 func TestEncryptAES(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	credentialsWithEmptyPassword := credentials
 	for _, credential := range credentialsWithEmptyPassword {
@@ -197,7 +196,7 @@ func TestEncryptAES(t *testing.T) {
 }
 
 func TestDecryptAES(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	for _, credential := range credentials {
 		err = credential.DecryptAES()
@@ -208,7 +207,7 @@ func TestDecryptAES(t *testing.T) {
 }
 
 func TestEncryptDecryptAES(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 
 	// Encrypt credentials
@@ -241,7 +240,7 @@ func TestEncryptDecryptAES(t *testing.T) {
 }
 
 func TestEncryptRSA(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	for _, credential := range credentials {
 		err = credential.EncryptRSA()
@@ -252,7 +251,7 @@ func TestEncryptRSA(t *testing.T) {
 }
 
 func TestDecryptRSA(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	for _, credential := range credentials {
 		err = credential.DecryptRSA()
@@ -263,7 +262,7 @@ func TestDecryptRSA(t *testing.T) {
 }
 
 func TestEncryptDecryptRSA(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 
 	// Encrypt credentials
@@ -305,7 +304,7 @@ import (
 	"time"
 )
 
-var Path_DotEnv = "./../../.env"
+var  = "./../../.env"
 var credenciais = []models.Credencial{
 	{
 		Id:        1,
@@ -400,7 +399,7 @@ var credenciais = []models.Credencial{
 }
 
 func TestCredencial_Preparar(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	for _, credencial := range credenciais {
 		err := credencial.Prepare("salvarDados", "")
 		if err != nil {
@@ -459,7 +458,7 @@ func TestValidar_SenhaVazia(t *testing.T) {
 }
 
 func TestFormatar_SalvarDados(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	for _, credencial := range credenciais {
 		err = credencial.Format("salvarDados")
@@ -471,7 +470,7 @@ func TestFormatar_SalvarDados(t *testing.T) {
 }
 
 func TestFormatar_ConsultarDados(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	for _, credencial := range credenciais {
 		err = credencial.Format("consultarDados")
@@ -483,7 +482,7 @@ func TestFormatar_ConsultarDados(t *testing.T) {
 }
 
 func TestCriptografarAES(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	credenciaisSenhaVazia := credenciais
 	for _, credencial := range credenciaisSenhaVazia {
@@ -495,7 +494,7 @@ func TestCriptografarAES(t *testing.T) {
 }
 
 func TestDescriptografarAES(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	for _, credencial := range credenciais {
 		err = credencial.DecryptAES()
@@ -506,7 +505,7 @@ func TestDescriptografarAES(t *testing.T) {
 }
 
 func TestEncryptDecryptAES(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 
 	// Criptografar as credenciais
@@ -539,7 +538,7 @@ func TestEncryptDecryptAES(t *testing.T) {
 }
 
 func TestCriptografarRSA(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	for _, credencial := range credenciais {
 		err = credencial.EncryptRSA()
@@ -550,7 +549,7 @@ func TestCriptografarRSA(t *testing.T) {
 }
 
 func TestDescriptografarRSA(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 	for _, credencial := range credenciais {
 		err = credencial.DecryptRSA()
@@ -561,7 +560,7 @@ func TestDescriptografarRSA(t *testing.T) {
 }
 
 func TestEncryptDecryptRSA(t *testing.T) {
-	configs.InitializeConfigurations(Path_DotEnv)
+	configs.InitializeConfigurations()
 	var err error
 
 	// Criptografar as credenciais
