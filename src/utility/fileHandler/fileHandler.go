@@ -203,23 +203,23 @@ func GetPathUntilFolder(path string, folderName string) (string, error) {
 }
 
 // GetSourceDirectory : returns the absolute path to the root directory of the projectreturns the absolute path to the root directory of the project
-func GetSourceDirectory() (rootDirectoryPath string, err error) {
+func GetSourceDirectory(RootDirectory string) (rootDirectoryPath string, err error) {
 	currentDirectoryPath, err := os.Getwd()
 	if err != nil {
 		return
 	}
-	rootDirectoryPath, err = GetPathUntilFolder(currentDirectoryPath, "safepasswordapi")
+	rootDirectoryPath, err = GetPathUntilFolder(currentDirectoryPath, RootDirectory)
 	return
 }
 
 // GetAbsoluteOrRootConcatenatedPath : function to check if the given path is absolute. case will not be set to the root directory of the project + the last directory of the given path
-func GetAbsoluteOrRootConcatenatedPath(Path string) (string, error) {
+func GetAbsoluteOrRootConcatenatedPath(Path string, RootDirectory string) (string, error) {
 	Path = filepath.FromSlash(Path)
 	if filepath.IsAbs(Path) {
 		return Path, nil
 	}
 
-	RootDirectory, err := GetSourceDirectory()
+	RootDirectory, err := GetSourceDirectory(RootDirectory)
 	if err != nil {
 		return "", err
 	}

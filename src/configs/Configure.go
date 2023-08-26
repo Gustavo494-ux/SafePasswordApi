@@ -27,6 +27,7 @@ var (
 	RSAPublicKeyPath  string
 	AESKeyPath        string
 	SecretKeyJWTPath  string
+	RootDirectory     string
 )
 
 // InitializeConfigurations : Performs the necessary setup for the project to be used
@@ -38,7 +39,7 @@ func InitializeConfigurations() {
 
 // loadEnvironmentVariables : Initializes the environment variables
 func loadEnvironmentVariables() {
-	Path, err := fileHandler.GetSourceDirectory()
+	Path, err := fileHandler.GetSourceDirectory(RootDirectory)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -66,6 +67,7 @@ func loadEnvironmentVariables() {
 	AESKeyPath = os.Getenv("AES_KEY_PATH")
 	SecretKeyJWTPath = os.Getenv("SECRET_KEY_JWT_PATH")
 
+	RootDirectory = os.Getenv("ROOT_DIRECTORY")
 }
 
 // ValidatePaths : Uses the GetAbsoluteOrRootConcatenatedPathKeys function to check if the given path is absolute. case will not be set to the root directory of the project + the last directory of the given path
@@ -225,7 +227,7 @@ func ValidateSecretKeyJWT(Key *string, Path string) {
 // GetAbsolutePathAbsolutePathRhootDirectory :function to check if the given path is absolute. case will not be set to the root directory of the project + the last directory of the given path
 func GetAbsoluteOrRootConcatenatedPathKeys(Path *string) string {
 	var err error
-	*Path, err = fileHandler.GetAbsoluteOrRootConcatenatedPath(*Path)
+	*Path, err = fileHandler.GetAbsoluteOrRootConcatenatedPath(*Path, RootDirectory)
 	if err != nil {
 		log.Fatal("error GetAbsoluteOrRootConcatenatedPath : ", err)
 	}
