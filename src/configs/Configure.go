@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"safePasswordApi/src/security/encrypt/asymmetrical"
 	hashEncrpt "safePasswordApi/src/security/encrypt/hash"
 	symmetricEncryp "safePasswordApi/src/security/encrypt/symmetrical"
@@ -43,7 +44,6 @@ func loadEnvironmentVariables() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(Path)
 	err = godotenv.Load(fmt.Sprintf("%s/.env", Path))
 	if err != nil {
 		log.Fatal(err)
@@ -67,7 +67,7 @@ func loadEnvironmentVariables() {
 	AESKeyPath = os.Getenv("AES_KEY_PATH")
 	SecretKeyJWTPath = os.Getenv("SECRET_KEY_JWT_PATH")
 
-	RootDirectory = os.Getenv("ROOT_DIRECTORY")
+	RootDirectory = strings.ToLower(os.Getenv(fmt.Sprintf("ROOT_DIRECTORY_%s", strings.ToUpper(runtime.GOOS))))
 }
 
 // ValidatePaths : Uses the GetAbsoluteOrRootConcatenatedPathKeys function to check if the given path is absolute. case will not be set to the root directory of the project + the last directory of the given path

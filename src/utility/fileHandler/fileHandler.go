@@ -208,7 +208,7 @@ func GetSourceDirectory(RootDirectory string) (rootDirectoryPath string, err err
 	if err != nil {
 		return
 	}
-	rootDirectoryPath, err = GetPathUntilFolder(currentDirectoryPath, RootDirectory)
+	rootDirectoryPath, err = GetPathUntilFolder(fmt.Sprintf("%s%s", currentDirectoryPath, string(filepath.Separator)), RootDirectory)
 	return
 }
 
