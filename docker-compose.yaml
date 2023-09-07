@@ -14,8 +14,8 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
     ports:
       - "${DB_PORT}:3306"
-    volumes:
-      - /e/Projetos/go/src/SafePasswordApi/Mysql:/var/lib/mysql                                                                                                                                                                                                                   
+    # volumes:
+    #   - /e/Projetos/go/src/SafePasswordApi/Mysql:/var/lib/mysql                                                                                                                                                                                                                   
 
   # safepassword:
   #   build: ./
@@ -41,5 +41,3 @@ services:
       - ${API_PORT}:${API_PORT}
     depends_on:
       - SafePassword_Mysql
-
-# docker volume create --driver local --opt type=none --opt device=/e/Projetos/go/src/SafePasswordApi/Mysql --opt o=bind vol_mysql_safepassword

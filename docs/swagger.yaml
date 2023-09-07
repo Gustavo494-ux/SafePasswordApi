@@ -1,0 +1,16 @@
+info:
+  contact:
+    email: gustavogama494@gmail.com
+    name: Gustavo Gama
+    url: https://www.linkedin.com/in/gustavo-gama-966b341b8/
+  description: |-
+    SafePasswordApi é uma API de gerenciamento de senhas com criptografia integral,
+    proporcionando armazenamento e acesso seguros para dados sensíveis de usuários,
+    por meio de métodos eficientes de manipulação de senhas.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: SafePasswordApi
+  version: "0.1"
+paths: {}
+swagger: "2.0"

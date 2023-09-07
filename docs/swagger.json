@@ -1,0 +1,18 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "SafePasswordApi é uma API de gerenciamento de senhas com criptografia integral,\nproporcionando armazenamento e acesso seguros para dados sensíveis de usuários,\npor meio de métodos eficientes de manipulação de senhas.",
+        "title": "SafePasswordApi",
+        "contact": {
+            "name": "Gustavo Gama",
+            "url": "https://www.linkedin.com/in/gustavo-gama-966b341b8/",
+            "email": "gustavogama494@gmail.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "0.1"
+    },
+    "paths": {}
+}
