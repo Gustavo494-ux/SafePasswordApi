@@ -1,3 +1,9 @@
+definitions:
+  models.Login:
+    properties:
+      token:
+        type: string
+    type: object
 info:
   contact:
     email: gustavogama494@gmail.com
@@ -12,5 +18,35 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   title: SafePasswordApi
   version: "0.1"
-paths: {}
+paths:
+  /Login:
+    post:
+      consumes:
+      - application/json
+      description: Performs user login based on provided credentials
+      parameters:
+      - description: User login credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Successful login
+          schema:
+            $ref: '#/definitions/models.Login'
+        "400":
+          description: Invalid request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Performs user login
+      tags:
+      - Authentication
 swagger: "2.0"

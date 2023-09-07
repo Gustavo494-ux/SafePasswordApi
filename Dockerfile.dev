@@ -29,6 +29,9 @@ ENV CGO_ENABLED=0
 ENV GO111MODULE=on
 ENV APP_DIR=/go/src
 ENV TZ=America/Sao_Paulo
+# Corrige o "error obtaining VCS status: exit status 128"
+ENV GOFLAGS=-buildvcs=false 
+
 
 # ## diretorio de trabalho
 WORKDIR "$APP_DIR"

@@ -12,6 +12,16 @@ import (
 )
 
 // Login
+// @Summary Performs user login
+// @Description Performs user login based on provided credentials
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param user body object true "User login credentials"
+// @Success 202 {object} models.Login "Successful login"
+// @Failure 400 {string} string "Invalid request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /Login [post]
 func Login(c echo.Context) error {
 	// Bind the user data from the request body
 	var user models.User

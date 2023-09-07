@@ -2,12 +2,9 @@ package main
 
 import (
 	"fmt"
-	_ "safePasswordApi/docs"
 	"safePasswordApi/src/configs"
 	"safePasswordApi/src/router"
 	"time"
-
-	echoSwagger "github.com/swaggo/echo-swagger" // echo-swagger middleware
 )
 
 func init() {
@@ -30,6 +27,5 @@ func main() {
 	r := router.Gerar()
 	r.Server.WriteTimeout = 30 * time.Second
 
-	r.GET("/swagger/*", echoSwagger.WrapHandler)
 	r.Logger.Fatal(r.Start(fmt.Sprintf(":%d", configs.Port)))
 }
