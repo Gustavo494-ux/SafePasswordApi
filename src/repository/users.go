@@ -3,7 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
-	"safePasswordApi/src/models"
+	"safePasswordApi/src/models/user"
 
 	"github.com/jmoiron/sqlx"
 )

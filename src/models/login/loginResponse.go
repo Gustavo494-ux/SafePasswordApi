@@ -1,5 +1,5 @@
 package models
 
-type Login struct {
+type LoginResponse struct {
 	Token string `json:"token,omitempty"`
 }

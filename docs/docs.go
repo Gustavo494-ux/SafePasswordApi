@@ -38,12 +38,12 @@ const docTemplate = `{
                 "summary": "Performs user login",
                 "parameters": [
                     {
-                        "description": "User login credentials",
-                        "name": "user",
+                        "description": "query params",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/models.UserLogin"
                         }
                     }
                 ],
@@ -51,19 +51,7 @@ const docTemplate = `{
                     "202": {
                         "description": "Successful login",
                         "schema": {
-                            "$ref": "#/definitions/models.Login"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.LoginResponse"
                         }
                     }
                 }
@@ -71,10 +59,21 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.Login": {
+        "models.LoginResponse": {
             "type": "object",
             "properties": {
                 "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserLogin": {
+            "type": "object",
+            "properties": {
+                "Email": {
+                    "type": "string"
+                },
+                "Password": {
                     "type": "string"
                 }
             }

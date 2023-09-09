@@ -1,7 +1,14 @@
 definitions:
-  models.Login:
+  models.LoginResponse:
     properties:
       token:
+        type: string
+    type: object
+  models.UserLogin:
+    properties:
+      Email:
+        type: string
+      Password:
         type: string
     type: object
 info:
@@ -25,27 +32,19 @@ paths:
       - application/json
       description: Performs user login based on provided credentials
       parameters:
-      - description: User login credentials
+      - description: query params
         in: body
-        name: user
+        name: request
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/models.UserLogin'
       produces:
       - application/json
       responses:
         "202":
           description: Successful login
           schema:
-            $ref: '#/definitions/models.Login'
-        "400":
-          description: Invalid request
-          schema:
-            type: string
-        "500":
-          description: Internal server error
-          schema:
-            type: string
+            $ref: '#/definitions/models.LoginResponse'
       summary: Performs user login
       tags:
       - Authentication

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"safePasswordApi/src/database"
-	"safePasswordApi/src/models"
+	"safePasswordApi/src/models/user"
 	"safePasswordApi/src/repository"
 	"strconv"
 

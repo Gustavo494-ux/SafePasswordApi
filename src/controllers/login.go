@@ -3,7 +3,8 @@ package controllers
 import (
 	"net/http"
 	"safePasswordApi/src/database"
-	"safePasswordApi/src/models"
+	login "safePasswordApi/src/models/login"
+	user "safePasswordApi/src/models/user"
 	"safePasswordApi/src/repository"
 	"safePasswordApi/src/security/auth"
 	hashEncryp "safePasswordApi/src/security/encrypt/hash"
@@ -17,17 +18,20 @@ import (
 // @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param user body object true "User login credentials"
-// @Success 202 {object} models.Login "Successful login"
-// @Failure 400 {string} string "Invalid request"
-// @Failure 500 {string} string "Internal server error"
+// @Param request body models.UserLogin true "query params"
+// @Success 202 {object} login.LoginResponse "Successful login"
 // @Router /Login [post]
 func Login(c echo.Context) error {
 	// Bind the user data from the request body
-	var user models.User
+	var user user.UserLogin
 	err := c.Bind(&user)
 	if err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
+	}
+
+	err = user.Prepare()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	// Connect to the database
@@ -36,11 +40,6 @@ func Login(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	defer db.Close()
-
-	user.Email_Hash, err = hashEncryp.GenerateSHA512(user.Email)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
 
 	// Create a user repository instance
 	repo := repository.NewUserRepository(db)
@@ -52,12 +51,12 @@ func Login(c echo.Context) error {
 	}
 
 	// Compare the hashed password from the database with the provided password
-	if err = hashEncryp.CompareSHA512(dbUser.Password, user.Password); err != nil {
+	if err = hashEncryp.CompareSHA512(dbUser.Password, user.Password_Plain); err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	// Create a login response with a JWT token
-	var login models.Login
+	var login login.LoginResponse
 	login.Token, err = auth.CriarTokenJWT(dbUser.ID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())

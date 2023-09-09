@@ -2,7 +2,7 @@ package models_test
 
 import (
 	"safePasswordApi/src/configs"
-	"safePasswordApi/src/models"
+	"safePasswordApi/src/models/user"
 	"testing"
 	"time"
 )
