@@ -20,9 +20,9 @@ definitions:
     type: object
   models.UserLogin:
     properties:
-      Email:
+      email:
         type: string
-      Password:
+      password:
         type: string
     type: object
   models.UserRegister:

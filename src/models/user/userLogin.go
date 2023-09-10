@@ -17,9 +17,9 @@ import (
 )
 
 type UserLogin struct {
-	Email          string `json:"Email,omitempty" db:"email"`
+	Email          string `json:"email,omitempty" db:"email"`
 	Password_Hash  string `json:"-" db:"safepassword,omitempty"`
-	Password_Plain string `json:"Password,omitempty" db:"-"`
+	Password_Plain string `json:"password,omitempty" db:"-"`
 	Email_Hash     string `json:"-" db:"email_hash"`
 }
 
@@ -65,18 +65,15 @@ func (user *UserLogin) Format() (err error) {
 
 // HashEncrypt: Encrypt hashed login data
 func (user *UserLogin) HashEncrypt() (err error) {
-	go func() {
-		user.Password_Hash, err = hashEncrpt.GenerateSHA512(user.Password_Plain)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
+	user.Password_Hash, err = hashEncrpt.GenerateSHA512(user.Password_Plain)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	go func() {
-		user.Email_Hash, err = hashEncrpt.GenerateSHA512(user.Email)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
+	user.Email_Hash, err = hashEncrpt.GenerateSHA512(user.Email)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	return
 }
