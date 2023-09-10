@@ -2,31 +2,37 @@ package models_test
 
 import (
 	"safePasswordApi/src/configs"
-	"safePasswordApi/src/models/user"
+	models "safePasswordApi/src/models/user"
 	"testing"
 	"time"
 )
 
 var usuarioCredentials = []models.User{
 	{
-		ID:         1,
-		Name:       "User 1",
-		Email:      "usuario1@example.com",
-		Password:   "password1",
+		ID: 1,
+		UserRegister: models.UserRegister{
+			Name:     "User 1",
+			Email:    "usuario1@example.com",
+			Password: "password1",
+		},
 		Created_at: time.Now(),
 	},
 	{
-		ID:         2,
-		Name:       "User 2",
-		Email:      "usuario2@example.com",
-		Password:   "password2",
+		ID: 2,
+		UserRegister: models.UserRegister{
+			Name:     "User 2",
+			Email:    "usuario2@example.com",
+			Password: "password2",
+		},
 		Created_at: time.Now(),
 	},
 	{
-		ID:         3,
-		Name:       "User 3",
-		Email:      "usuario3@example.com",
-		Password:   "password3",
+		ID: 3,
+		UserRegister: models.UserRegister{
+			Name:     "User 3",
+			Email:    "usuario3@example.com",
+			Password: "password3",
+		},
 		Created_at: time.Now(),
 	},
 }

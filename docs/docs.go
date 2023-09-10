@@ -56,6 +56,40 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user": {
+            "post": {
+                "description": "Performs user login based on provided credentials",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Performs user registration.",
+                "parameters": [
+                    {
+                        "description": "query params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UserRegister"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Successful register",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -67,6 +101,27 @@ const docTemplate = `{
                 }
             }
         },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "Password   string    ` + "`" + `json:\"password,omitempty\" db:\"safepassword,omitempty\"` + "`" + `",
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
         "models.UserLogin": {
             "type": "object",
             "properties": {
@@ -74,6 +129,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "Password": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserRegister": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
                     "type": "string"
                 }
             }

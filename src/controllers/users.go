@@ -12,6 +12,14 @@ import (
 )
 
 // CreateUser inserts a user into the database.
+// @Summary Performs user registration.
+// @Description Performs user login based on provided credentials
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param request body models.UserRegister true "query params"
+// @Success 202 {object} models.User "Successful register"
+// @Router /user [post]
 func CreateUser(c echo.Context) error {
 	var user models.User
 	if err := c.Bind(&user); err != nil {

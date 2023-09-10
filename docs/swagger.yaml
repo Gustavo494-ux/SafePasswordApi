@@ -4,11 +4,34 @@ definitions:
       token:
         type: string
     type: object
+  models.User:
+    properties:
+      created_at:
+        description: Password   string    `json:"password,omitempty" db:"safepassword,omitempty"`
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+    type: object
   models.UserLogin:
     properties:
       Email:
         type: string
       Password:
+        type: string
+    type: object
+  models.UserRegister:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
         type: string
     type: object
 info:
@@ -48,4 +71,26 @@ paths:
       summary: Performs user login
       tags:
       - Authentication
+  /user:
+    post:
+      consumes:
+      - application/json
+      description: Performs user login based on provided credentials
+      parameters:
+      - description: query params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserRegister'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Successful register
+          schema:
+            $ref: '#/definitions/models.User'
+      summary: Performs user registration.
+      tags:
+      - User
 swagger: "2.0"

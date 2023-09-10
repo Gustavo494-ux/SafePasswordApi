@@ -15,11 +15,12 @@ import (
 )
 
 type User struct {
-	ID         uint64    `json:"id,omitempty" db:"id"`
-	Name       string    `json:"name,omitempty" db:"name"`
-	Email      string    `json:"email,omitempty" db:"email"`
-	Email_Hash string    `json:"email_hash,omitempty" db:"email_hash"`
-	Password   string    `json:"password,omitempty" db:"safepassword,omitempty"`
+	ID uint64 `json:"id,omitempty" db:"id"`
+	UserRegister
+	// Name       string    `json:"name,omitempty" db:"name"`
+	// Email      string    `json:"email,omitempty" db:"email"`
+	Email_Hash string `json:"-" db:"email_hash"`
+	// Password   string    `json:"password,omitempty" db:"safepassword,omitempty"`
 	Created_at time.Time `json:"created_at,omitempty" db:"created_at"`
 }
 
