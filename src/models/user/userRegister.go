@@ -2,13 +2,6 @@ package models
 
 import (
 	"errors"
-	// "fmt"
-	// "safePasswordApi/src/configs"
-	// "safePasswordApi/src/security/encrypt/asymmetrical"
-	// hashEncrpt "safePasswordApi/src/security/encrypt/hash"
-	// symmetricEncrypt "safePasswordApi/src/security/encrypt/symmetrical"
-	// "strconv"
-	//"strings"
 
 	"github.com/badoux/checkmail"
 )
@@ -16,7 +9,7 @@ import (
 type UserRegister struct {
 	Name     string `json:"name,omitempty" db:"name"`
 	Email    string `json:"email,omitempty" db:"email"`
-	Password string `json:"password,omitempty" db:"safepassword,omitempty"`
+	Password string `json:"Password,omitempty" db:"safepassword"`
 }
 
 // Prepare will call methods to validate and format the received user based on the given stage.

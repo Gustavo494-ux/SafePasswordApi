@@ -3,15 +3,8 @@ package models
 import (
 	"errors"
 	"log"
-	"strings"
-	// "fmt"
-	// "safePasswordApi/src/configs"
-	// "safePasswordApi/src/security/encrypt/asymmetrical"
 	hashEncrpt "safePasswordApi/src/security/encrypt/hash"
-	// symmetricEncrypt "safePasswordApi/src/security/encrypt/symmetrical"
-	// "strconv"
-	// "strings"
-	// "time"
+	"strings"
 
 	"github.com/badoux/checkmail"
 )
