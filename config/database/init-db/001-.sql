@@ -7,7 +7,7 @@ CREATE TABLE IF NOT exists Users(
     Email text,
     Email_Hash varchar(128),
     SafePassword varchar(128), 
-    CriadoEm timestamp default current_timestamp
+    created_at timestamp default current_timestamp
 )ENGINE=InnoDB;
 
 
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT exists Credenciais(
     siteUrl text,
     Login text,
     Senha text,
-    CriadoEm timestamp default current_timestamp
+    created_at timestamp default current_timestamp
 )ENGINE=InnoDB;
 
 alter table Credenciais add foreign key(UsuarioId) references Users(id) ON DELETE CASCADE;
