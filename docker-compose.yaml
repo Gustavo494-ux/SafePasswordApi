@@ -1,45 +1,49 @@
 version: '3'
 # Os containers safepassword e dev não podem subir juntos, pois a porta da api vai conflitar. 
 # utilizaremos o Dev apenas para testar o projeto. e o Safepassword para deixar ele rodando no servidor para ser utilizado. 
+
 services:
   SafePassword_Mysql:
-    image: mysql:8
+    image: mysql
     container_name: SafePassword_Mysql
     hostname: SafePassword_Mysql
     restart: always
     env_file:
       - .env
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
+      - config/database/mysql.env
     ports:
-      - "${DB_PORT}:3306"
+      - 3306:3306
     volumes:
-      - /e/Projetos/go/src/SafePasswordApi/Mysql:/var/lib/mysql                                                                                                                                                                                                                   
+      - "./config/database/init-db/:/docker-entrypoint-initdb.d"
+      - "/mnt/c/Volumes_Docker/SafePassword_Mysql:/var/run/mysql"
 
-  # safepassword:
-  #   build: ./
-  #   container_name: safepassword
-  #   # volumes:
-  #   #   - .:/go/src
-  #   restart: always
-  #   ports:
-  #     - ${API_PORT}:${API_PORT}
-  #   depends_on:
-  #     - SafePassword_Mysql
-  
-  dev:
+                                                                                                                                                                                                             
+
+  safepassword:
     build: 
       context: ./
-      dockerfile : Dockerfile.dev
-    container_name: dev
-    working_dir: /go/src
-    volumes:
-      - ./:/go/src
+      dockerfile: Dockerfile
+    container_name: safepassword
+    # volumes:
+    #   - .:/go/src
     restart: always
     ports:
       - ${API_PORT}:${API_PORT}
     depends_on:
       - SafePassword_Mysql
+  
+  # dev:
+  #   build: 
+  #     context: ./
+  #     dockerfile : Dockerfile.dev
+  #   container_name: dev
+  #   working_dir: /go/src
+  #   volumes:
+  #     - ./:/go/src
+  #   restart: always
+  #   ports:
+  #     - ${API_PORT}:${API_PORT}
+  #   depends_on:
+  #     - SafePassword_Mysql
 
 # docker volume create --driver local --opt type=none --opt device=/e/Projetos/go/src/SafePasswordApi/Mysql --opt o=bind vol_mysql_safepassword
