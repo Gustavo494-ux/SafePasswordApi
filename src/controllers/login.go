@@ -13,46 +13,39 @@ import (
 
 // Login
 func Login(c echo.Context) error {
-	// Bind the user data from the request body
-	var user models.User
-	err := c.Bind(&user)
+	var usuario models.Usuario
+	err := c.Bind(&usuario)
 	if err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	// Connect to the database
 	db, err := database.Conectar()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	defer db.Close()
 
-	user.Email_Hash, err = hashEncryp.GenerateSHA512(user.Email)
+	usuario.Email_Hash, err = hashEncryp.GenerateSHA512(usuario.Email)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	// Create a user repository instance
-	repo := repository.NewUserRepository(db)
+	repo := repository.NovoRepositorioUsuario(db)
 
-	// Find the user by email in the database
-	dbUser, err := repo.FindByEmail(user.Email_Hash)
+	dbusuario, err := repo.BuscarPorEmail(usuario.Email_Hash)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	// Compare the hashed password from the database with the provided password
-	if err = hashEncryp.CompareSHA512(dbUser.Password, user.Password); err != nil {
+	if err = hashEncryp.CompareSHA512(dbusuario.Senha, usuario.Senha); err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	// Create a login response with a JWT token
 	var login models.Login
-	login.Token, err = auth.CriarTokenJWT(dbUser.ID)
+	login.Token, err = auth.CriarTokenJWT(dbusuario.ID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	// Return the login response with the JWT token
 	return c.JSON(http.StatusAccepted, login)
 }
