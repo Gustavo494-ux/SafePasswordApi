@@ -2,11 +2,11 @@ package models
 
 import (
 	"errors"
-	enum "safePasswordApi/src/enu/geral"
+	"safePasswordApi/src/configs"
+	enum "safePasswordApi/src/enum/geral"
 	"safePasswordApi/src/security/encrypt/asymmetrical"
 	hashEncrpt "safePasswordApi/src/security/encrypt/hash"
 	symmetrical "safePasswordApi/src/security/encrypt/symmetrical"
-	"safeasswordApi/src/configs"
 	"strings"
 	"time"
 
@@ -52,7 +52,7 @@ func (usuario *Usuario) Validar(TipoValidacao enum.TipoValidacao) error {
 		return errors.New("formato de email inválido")
 	}
 
-	if usuario.Senha == "" && TipoValidacao == enum.TipoValidacao_Cadastro {
+	if usuario.Senha == "" && (TipoValidacao == enum.TipoValidacao_Cadastro || TipoValidacao == enum.TipoValidacao_Atualizar) {
 		return errors.New("senha é obrigatório e não pode ficar em branco")
 	}
 
@@ -67,6 +67,7 @@ func (usuario *Usuario) Formatar(TipoFormatacao enum.TipoFormatacao) error {
 
 	switch TipoFormatacao {
 	case enum.TipoFormatacao_Cadastro:
+	case enum.TipoFormatacao_Atualizar:
 		{
 			usuario.Senha, err = hashEncrpt.GenerateSHA512(usuario.Senha)
 			if err != nil {
@@ -78,12 +79,12 @@ func (usuario *Usuario) Formatar(TipoFormatacao enum.TipoFormatacao) error {
 				return err
 			}
 
-			if err = usuario.Encrypt(); err != nil {
+			if err = usuario.Criptografar(); err != nil {
 				return err
 			}
 		}
 	case enum.TipoFormatacao_Consulta:
-		if err := usuario.Decrypt(); err != nil {
+		if err := usuario.Descriptografar(); err != nil {
 			return err
 		}
 	}
@@ -145,7 +146,7 @@ func (usuario *Usuario) DescriptografarRSA() error {
 		return err
 	}
 
-	if usuario.Name, err = asymmetrical.DecryptRSA(usuario.Nome, privateKey); err != nil {
+	if usuario.Nome, err = asymmetrical.DecryptRSA(usuario.Nome, privateKey); err != nil {
 		return err
 	}
 
@@ -154,17 +155,33 @@ func (usuario *Usuario) DescriptografarRSA() error {
 	}
 	return nil
 }
-/ Descriptografar descriptografa os dados do usuário usando criptografia AES e RSA.
+
+// Descriptografar descriptografa os dados do usuário usando criptografia AES e RSA.
 func (usuario *Usuario) Descriptografar() error {
 	err := usuario.DescriptografarRSA()
 	if err != nil {
 		return err
 	}
 
-err = usuario.DescriptografarAES()
+	err = usuario.DescriptografarAES()
 	if err != nil {
 		return err
 	}
 
-return nil
+	return nil
+}
+
+// Criptografar criptografa os dados do usuário usando criptografia RSA e AES
+func (usuario *Usuario) Criptografar() error {
+	err := usuario.CriptografarAES()
+	if err != nil {
+		return err
+	}
+
+	err = usuario.CriptografarRSA()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

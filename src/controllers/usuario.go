@@ -132,7 +132,7 @@ func AtualizarUsuario(c echo.Context) error {
 		return c.JSON(http.StatusNotFound, errors.New("usuario não encontrado"))
 	}
 
-	if err := usuarioRequest.Preparar(enum.TipoPreparacao_Consulta); err != nil {
+	if err := usuarioRequest.Preparar(enum.TipoPreparacao_Atualizar); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
