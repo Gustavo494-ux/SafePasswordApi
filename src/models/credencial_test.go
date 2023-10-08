@@ -2,6 +2,7 @@ package models_test
 
 import (
 	"safePasswordApi/src/configs"
+	enum "safePasswordApi/src/enum/geral"
 	"safePasswordApi/src/models"
 	"testing"
 	"time"
@@ -103,7 +104,7 @@ var credentials = []models.Credencial{
 func TestCredencial_Prepare(t *testing.T) {
 	configs.InitializeConfigurations()
 	for _, credential := range credentials {
-		err := credential.Prepare("saveData")
+		err := credential.Preparar(enum.TipoPreparacao_Cadastro)
 		if err != nil {
 			t.Fatalf("An error occurred while preparing the credential: %v", err)
 		}
@@ -112,7 +113,7 @@ func TestCredencial_Prepare(t *testing.T) {
 
 func TestValidate(t *testing.T) {
 	for _, credential := range credentials {
-		err := credential.Validate()
+		err := credential.Validar()
 
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err.Error())
@@ -129,7 +130,7 @@ func TestValidate_UsuarioIdZero(t *testing.T) {
 			credential.UsuarioId = 0
 		}
 
-		err = credential.Validate()
+		err = credential.Validar()
 		if err == nil {
 			if credential.Id%2 == 0 {
 				t.Error("Expected an error, but none returned")
@@ -148,7 +149,7 @@ func TestValidate_SenhaVazia(t *testing.T) {
 		} else {
 			credential.Senha = "Test"
 		}
-		err = credential.Validate()
+		err = credential.Validar()
 		if err == nil {
 			if credential.Id%2 == 1 {
 				t.Error("Expected an error, but none returned")
@@ -163,7 +164,7 @@ func TestFormat_SaveData(t *testing.T) {
 	configs.InitializeConfigurations()
 	var err error
 	for _, credential := range credentials {
-		err = credential.Format("saveData")
+		err = credential.Formatar(enum.TipoFormatacao_Cadastro)
 
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err.Error())
@@ -175,7 +176,7 @@ func TestFormat_RetrieveData(t *testing.T) {
 	configs.InitializeConfigurations()
 	var err error
 	for _, credential := range credentials {
-		err = credential.Format("retrieveData")
+		err = credential.Preparar(enum.TipoPreparacao_Consulta)
 
 		if err.Error() != "data not encrypted with RSA" {
 			t.Errorf("Error: %v", err)
@@ -188,7 +189,7 @@ func TestEncryptAES(t *testing.T) {
 	var err error
 	credentialsWithEmptyPassword := credentials
 	for _, credential := range credentialsWithEmptyPassword {
-		err = credential.EncryptAES()
+		err = credential.CriptografarAES()
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err.Error())
 		}
@@ -199,7 +200,7 @@ func TestDecryptAES(t *testing.T) {
 	configs.InitializeConfigurations()
 	var err error
 	for _, credential := range credentials {
-		err = credential.DecryptAES()
+		err = credential.DescriptografarAES()
 		if err != nil && err.Error() != "unencrypted data using AES 256" {
 			t.Errorf("Unexpected error: %s", err.Error())
 		}
@@ -214,7 +215,7 @@ func TestEncryptDecryptAES(t *testing.T) {
 	credentialsToEncrypt := credentials
 
 	for i := range credentialsToEncrypt {
-		err = credentialsToEncrypt[i].EncryptAES()
+		err = credentialsToEncrypt[i].CriptografarAES()
 		if err != nil {
 			t.Errorf("Unexpected error while encrypting: %s", err.Error())
 		}
@@ -222,7 +223,7 @@ func TestEncryptDecryptAES(t *testing.T) {
 
 	// Decrypt credentials
 	for i := range credentialsToEncrypt {
-		err = credentialsToEncrypt[i].DecryptAES()
+		err = credentialsToEncrypt[i].DescriptografarAES()
 		if err != nil {
 			t.Errorf("Unexpected error while decrypting: %s", err.Error())
 		}
@@ -243,7 +244,7 @@ func TestEncryptRSA(t *testing.T) {
 	configs.InitializeConfigurations()
 	var err error
 	for _, credential := range credentials {
-		err = credential.EncryptRSA()
+		err = credential.CriptografarRSA()
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err.Error())
 		}
@@ -254,7 +255,7 @@ func TestDecryptRSA(t *testing.T) {
 	configs.InitializeConfigurations()
 	var err error
 	for _, credential := range credentials {
-		err = credential.DecryptRSA()
+		err = credential.DescriptografarRSA()
 		if err != nil && err.Error() != "data not encrypted with RSA" {
 			t.Errorf("Unexpected error: %s", err.Error())
 		}
@@ -269,7 +270,7 @@ func TestEncryptDecryptRSA(t *testing.T) {
 	credentialsToEncrypt := credentials
 
 	for i := range credentialsToEncrypt {
-		err = credentialsToEncrypt[i].EncryptRSA()
+		err = credentialsToEncrypt[i].CriptografarRSA()
 		if err != nil {
 			t.Errorf("Unexpected error while encrypting: %s", err.Error())
 		}
@@ -277,7 +278,7 @@ func TestEncryptDecryptRSA(t *testing.T) {
 
 	// Decrypt credentials
 	for i := range credentialsToEncrypt {
-		err = credentialsToEncrypt[i].DecryptRSA()
+		err = credentialsToEncrypt[i].DescriptografarRSA()
 		if err != nil {
 			t.Errorf("Unexpected error while decrypting: %s", err.Error())
 		}

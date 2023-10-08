@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"safePasswordApi/src/configs"
+	enum "safePasswordApi/src/enum/geral"
 	"safePasswordApi/src/security/encrypt/asymmetrical"
 	symmetricEncrypt "safePasswordApi/src/security/encrypt/symmetrical"
 	"time"
@@ -18,40 +19,44 @@ type Credencial struct {
 	CriadoEm  time.Time `json:"criadoEm,omitempty" db:"criadoem"`
 }
 
-func (credencial *Credencial) Prepare(step string) error {
-	if err := credencial.Validate(); err != nil {
+// Preparar chamará métodos para validar e formatar a credencial recebido com base no tipo
+func (credencial *Credencial) Preparar(TipoPreparacao enum.TipoPreparacao) error {
+	if err := credencial.Validar(); err != nil {
 		return err
 	}
 
-	if err := credencial.Format(step); err != nil {
+	if err := credencial.Formatar(enum.TipoFormatacao(TipoPreparacao)); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (credencial *Credencial) Validate() error {
+// Validar verifica se os campos da credencial são válidos com base no tipo determinado.
+func (credencial *Credencial) Validar() error {
 	if credencial.UsuarioId == 0 {
-		return errors.New("user is required and cannot be blank")
+		return errors.New("o usuário é obrigatório e não pode ficar em branco")
 	}
 
 	if credencial.Senha == "" {
-		return errors.New("password is required and cannot be blank")
+		return errors.New("a senha é obrigatória e não pode ficar em branco")
 	}
 
 	return nil
 }
 
-func (credencial *Credencial) Format(step string) error {
+// Formatar aplica a formatação necessária para cada tipo
+func (credencial *Credencial) Formatar(TipoFormatacao enum.TipoFormatacao) error {
 	var err error
-	switch step {
-	case "saveData":
-		if err = credencial.Encrypt(); err != nil {
+	switch TipoFormatacao {
+	case enum.TipoFormatacao_Cadastro,
+		enum.TipoFormatacao_Atualizar:
+		if err = credencial.Criptografar(); err != nil {
 			return err
 		}
 
-	case "retrieveData":
-		if err = credencial.Decrypt(); err != nil {
+	case enum.TipoFormatacao_Consulta:
+		if err = credencial.Descriptografar(); err != nil {
 			return err
 		}
 	}
@@ -59,27 +64,14 @@ func (credencial *Credencial) Format(step string) error {
 	return nil
 }
 
-func (credencial *Credencial) Encrypt() error {
-	err := credencial.EncryptAES()
+// Criptografar criptografa os dados da credencial usando criptografia AES e RSA
+func (credencial *Credencial) Criptografar() error {
+	err := credencial.CriptografarAES()
 	if err != nil {
 		return err
 	}
 
-	err = credencial.EncryptRSA()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (credencial *Credencial) Decrypt() error {
-	err := credencial.DecryptRSA()
-	if err != nil {
-		return err
-	}
-
-	err = credencial.DecryptAES()
+	err = credencial.CriptografarRSA()
 	if err != nil {
 		return err
 	}
@@ -87,7 +79,23 @@ func (credencial *Credencial) Decrypt() error {
 	return nil
 }
 
-func (credencial *Credencial) EncryptAES() error {
+// Criptografar criptografa os dados da credencial usando criptografia RSA e AES
+func (credencial *Credencial) Descriptografar() error {
+	err := credencial.DescriptografarRSA()
+	if err != nil {
+		return err
+	}
+
+	err = credencial.DescriptografarAES()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// CriptografarAES criptografa os dados da credencial usando AES.
+func (credencial *Credencial) CriptografarAES() error {
 	var err error
 	if credencial.Descricao, err = symmetricEncrypt.EncryptDataAES(credencial.Descricao, configs.AESKey); err != nil {
 		return err
@@ -108,7 +116,8 @@ func (credencial *Credencial) EncryptAES() error {
 	return nil
 }
 
-func (credencial *Credencial) DecryptAES() error {
+// DescriptografarAES descriptografa os dados da credencial usando AES.
+func (credencial *Credencial) DescriptografarAES() error {
 	var err error
 	if credencial.Descricao, err = symmetricEncrypt.DecryptDataAES(credencial.Descricao, configs.AESKey); err != nil {
 		return err
@@ -129,7 +138,8 @@ func (credencial *Credencial) DecryptAES() error {
 	return nil
 }
 
-func (credencial *Credencial) EncryptRSA() error {
+// CriptografarRSA criptografa os dados da credencial usando RSA.
+func (credencial *Credencial) CriptografarRSA() error {
 	var err error
 	publicKey, err := asymmetrical.ParseRSAPublicKey(configs.RSAPublicKey)
 	if err != nil {
@@ -155,7 +165,8 @@ func (credencial *Credencial) EncryptRSA() error {
 	return nil
 }
 
-func (credencial *Credencial) DecryptRSA() error {
+// DescriptografarRSA descriptografa os dados da credencial usando RSA.
+func (credencial *Credencial) DescriptografarRSA() error {
 	var err error
 	privateKey, err := asymmetrical.ParseRSAPrivateKey(configs.RSAPrivateKey)
 	if err != nil {

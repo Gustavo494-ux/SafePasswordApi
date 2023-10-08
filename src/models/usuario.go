@@ -38,7 +38,7 @@ func (usuario *Usuario) Preparar(TipoPreparacao enum.TipoPreparacao) error {
 	return nil
 }
 
-// Validar verifica se os campos do usuário são válidos com base no estágio determinado.
+// Validar verifica se os campos do usuário são válidos com base no tipo determinado.
 func (usuario *Usuario) Validar(TipoValidacao enum.TipoValidacao) error {
 	if usuario.Nome == "" {
 		return errors.New("nome é obrigatório e não pode ficar em branco")
@@ -66,8 +66,8 @@ func (usuario *Usuario) Formatar(TipoFormatacao enum.TipoFormatacao) error {
 	usuario.Email = strings.TrimSpace(usuario.Email)
 
 	switch TipoFormatacao {
-	case enum.TipoFormatacao_Cadastro:
-	case enum.TipoFormatacao_Atualizar:
+	case enum.TipoFormatacao_Cadastro,
+		enum.TipoFormatacao_Atualizar:
 		{
 			usuario.Senha, err = hashEncrpt.GenerateSHA512(usuario.Senha)
 			if err != nil {
@@ -156,7 +156,7 @@ func (usuario *Usuario) DescriptografarRSA() error {
 	return nil
 }
 
-// Descriptografar descriptografa os dados do usuário usando criptografia AES e RSA.
+// Descriptografar descriptografa os dados do usuário usando criptografia RSA e AES
 func (usuario *Usuario) Descriptografar() error {
 	err := usuario.DescriptografarRSA()
 	if err != nil {
@@ -171,7 +171,7 @@ func (usuario *Usuario) Descriptografar() error {
 	return nil
 }
 
-// Criptografar criptografa os dados do usuário usando criptografia RSA e AES
+// Criptografar criptografa os dados do usuário usando criptografia AES e RSA
 func (usuario *Usuario) Criptografar() error {
 	err := usuario.CriptografarAES()
 	if err != nil {

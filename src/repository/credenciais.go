@@ -8,19 +8,19 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type Credential struct {
+type Credencial struct {
 	db *sqlx.DB
 }
 
-// NewCredentialRepository create a credential repository
-func NewCredentialRepository(db *sqlx.DB) *Credential {
-	return &Credential{db}
+// NovoRepositorioCredencial cria um repositório de credenciais
+func NovoRepositorioCredencial(db *sqlx.DB) *Credencial {
+	return &Credencial{db}
 }
 
-// CreateCredential insert a new credential
-func (repo *Credential) CreateCredential(credential models.Credencial) (uint64, error) {
+// Criar insere uma nova credencial
+func (repo *Credencial) Criar(credential models.Credencial) (uint64, error) {
 	resultado, err := repo.db.Exec(
-		`INSERT INTO Credenciais (UsuarioId, Descricao, SiteUrl, Login, Senha) VALUES (?, ?, ?, ?, ?)`,
+		`INSERT INTO Credenciais (usuarioId, descricao, siteUrl, login, Senha) VALUES (?, ?, ?, ?, ?)`,
 		credential.UsuarioId,
 		credential.Descricao,
 		credential.SiteUrl,
@@ -36,7 +36,7 @@ func (repo *Credential) CreateCredential(credential models.Credencial) (uint64, 
 		return 0, err
 	}
 	if linhasAfetadas == 0 {
-		return 0, errors.New("no rows affected, check the provided data")
+		return 0, errors.New("nenhuma linha afetada, verifique os dados fornecidos")
 	}
 
 	ultimoIDInserido, err := resultado.LastInsertId()
@@ -47,15 +47,15 @@ func (repo *Credential) CreateCredential(credential models.Credencial) (uint64, 
 	return uint64(ultimoIDInserido), nil
 }
 
-// FindCredentialByID fetch a credential by its ID
-func (repo *Credential) FindCredentialByID(credentialID uint64) (models.Credencial, error) {
+// BuscarPorId busca uma credencial por seu ID
+func (repo *Credencial) BuscarPorId(credentialID uint64) (models.Credencial, error) {
 	credential := models.Credencial{}
 	err := repo.db.Get(&credential,
 		`SELECT id, usuarioId, descricao, siteUrl, login, senha, criadoem FROM Credenciais WHERE id = ?`,
 		credentialID,
 	)
 	if err == sql.ErrNoRows {
-		return models.Credencial{}, errors.New("no credential found, check the provided data")
+		return models.Credencial{}, errors.New("nenhuma credencial encontrada, verifique os dados fornecidos")
 	}
 	if err != nil {
 		return models.Credencial{}, err
@@ -64,15 +64,15 @@ func (repo *Credential) FindCredentialByID(credentialID uint64) (models.Credenci
 	return credential, nil
 }
 
-// FindCredentials fetches all credentials stored in the database for a given user
-func (repo *Credential) FindCredentials(userID uint64) ([]models.Credencial, error) {
+// BuscarTodos busca todas as credenciais armazenadas no banco de dados para um determinado usuário
+func (repo *Credencial) BuscarTodos(userID uint64) ([]models.Credencial, error) {
 	credentials := []models.Credencial{}
 	err := repo.db.Select(&credentials,
 		"SELECT id, usuarioId, descricao, siteUrl, login, senha, criadoem FROM Credenciais WHERE UsuarioId = ?",
 		userID,
 	)
 	if len(credentials) == 0 {
-		return []models.Credencial{}, errors.New("no credentials found, check the provided data")
+		return []models.Credencial{}, errors.New("nenhuma credencial encontrada, verifique os dados fornecidos")
 	}
 	if err != nil {
 		return []models.Credencial{}, err
@@ -81,8 +81,8 @@ func (repo *Credential) FindCredentials(userID uint64) ([]models.Credencial, err
 	return credentials, nil
 }
 
-// UpdateCredential updates a credential's information in the database
-func (repo *Credential) UpdateCredential(credentialID uint64, credential models.Credencial) error {
+// Atualizar atualiza as informações de uma credencial no banco de dados
+func (repo *Credencial) Atualizar(credentialID uint64, credential models.Credencial) error {
 	resultado, err := repo.db.Exec(
 		`UPDATE Credenciais SET descricao=?, siteUrl=?, login=?, senha=? WHERE id=?`,
 		credential.Descricao,
@@ -100,14 +100,14 @@ func (repo *Credential) UpdateCredential(credentialID uint64, credential models.
 		return err
 	}
 	if linhasAfetadas == 0 {
-		return errors.New("no rows affected, check the provided data")
+		return errors.New("nenhuma linha afetada, verifique os dados fornecidos")
 	}
 
 	return nil
 }
 
-// DeleteCredential delete a credential from the database
-func (repo *Credential) DeleteCredential(credentialID uint64) error {
+// Deletar deleta uma credencial do banco de dados.
+func (repo *Credencial) Deletar(credentialID uint64) error {
 	resultado, err := repo.db.Exec(
 		`DELETE FROM Credenciais WHERE id = ?`,
 		credentialID,
@@ -121,7 +121,7 @@ func (repo *Credential) DeleteCredential(credentialID uint64) error {
 		return err
 	}
 	if linhasAfetadas == 0 {
-		return errors.New("no rows affected, check the provided data")
+		return errors.New("nenhuma linha afetada, verifique os dados fornecidos")
 	}
 
 	return nil

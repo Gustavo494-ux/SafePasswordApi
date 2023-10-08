@@ -10,12 +10,12 @@ import (
 func CredentialRoutes(e *echo.Echo) {
 
 	// Group of routes with middleware
-	credentialGroup := e.Group("/credentials")
+	credentialGroup := e.Group("/credenciais")
 	credentialGroup.Use(middlewares.Authenticate)
 
-	credentialGroup.POST("", controllers.CreateCredential)
-	credentialGroup.GET("", controllers.GetCredentials)
-	credentialGroup.GET("/:credentialId", controllers.GetCredential)
-	credentialGroup.PUT("/:credentialId", controllers.UpdateCredential)
-	credentialGroup.DELETE("/:credentialId", controllers.DeleteCredential)
+	credentialGroup.POST("", controllers.CriarCredencial)
+	credentialGroup.GET("", controllers.BuscarCredenciais)
+	credentialGroup.GET("/:credencialId", controllers.BuscarCredencialPorId)
+	credentialGroup.PUT("/:credentialId", controllers.AtualizarCredencial)
+	credentialGroup.DELETE("/:credentialId", controllers.DeletarCredencial)
 }
