@@ -17,7 +17,7 @@ const (
 
 func TestCreateFile(t *testing.T) {
 	dir, _ := os.Getwd()
-	err := fileHandler.CreateFile(dir, fileName)
+	_, err := fileHandler.CreateFile(dir, fileName)
 	if err != nil {
 		t.Errorf("CreateFile failed with error: %s", err)
 	}

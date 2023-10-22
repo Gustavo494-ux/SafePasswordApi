@@ -8,13 +8,13 @@ import (
 )
 
 // CreateFile : creates a new file with the specified name
-func CreateFile(directoryPath string, filename string) error {
-	file, err := os.Create(strings.ReplaceAll(filepath.Join(directoryPath, filename), "\\", "/"))
+func CreateFile(directoryPath string, filename string) (file *os.File, err error) {
+	file, err = os.Create(strings.ReplaceAll(filepath.Join(directoryPath, filename), "\\", "/"))
 	if err != nil {
-		return err
+		return
 	}
 	defer file.Close()
-	return nil
+	return
 }
 
 // OpenFile : open an existing file for reading
@@ -151,7 +151,7 @@ func CreateFileIfNotExists(path string) (err error) {
 		err = fmt.Errorf("error getting file info: %s", err)
 	}
 	if fileInfo == nil {
-		err = CreateFile(dir, fileName)
+		_, err = CreateFile(dir, fileName)
 		if err != nil {
 			err = fmt.Errorf("error creating file: %s", err)
 		}
@@ -204,16 +204,22 @@ func GetPathUntilFolder(path string, folderName string) (string, error) {
 
 // GetSourceDirectory : returns the absolute path to the root directory of the projectreturns the absolute path to the root directory of the project
 func GetSourceDirectory(RootDirectory string) (rootDirectoryPath string, err error) {
+	RootDirectory = strings.ToLower(RootDirectory)
 	currentDirectoryPath, err := os.Getwd()
 	if err != nil {
 		return
 	}
 	rootDirectoryPath, err = GetPathUntilFolder(fmt.Sprintf("%s%s", currentDirectoryPath, string(filepath.Separator)), RootDirectory)
+	if err != nil {
+		rootDirectoryPath, err = GetSourceDirectory("app")
+		return
+	}
 	return
 }
 
 // GetAbsoluteOrRootConcatenatedPath : function to check if the given path is absolute. case will not be set to the root directory of the project + the last directory of the given path
 func GetAbsoluteOrRootConcatenatedPath(Path string, RootDirectory string) (string, error) {
+	RootDirectory = strings.ToLower(RootDirectory)
 	Path = filepath.FromSlash(Path)
 	if filepath.IsAbs(Path) {
 		return Path, nil
