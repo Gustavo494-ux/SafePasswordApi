@@ -133,10 +133,10 @@ func TestValidate_UsuarioIdZero(t *testing.T) {
 		err = credential.Validar()
 		if err == nil {
 			if credential.Id%2 == 0 {
-				t.Error("Expected an error, but none returned")
+				t.Error("Esperava o erro 'o usuário é obrigatório e não pode ficar em branco', mas nenhum retornou")
 			}
-		} else if err.Error() != "user is required and cannot be blank" {
-			t.Errorf("Expected error: %s", "user is required and cannot be blank")
+		} else if err.Error() != "o usuário é obrigatório e não pode ficar em branco" {
+			t.Errorf("Erro esperado: %s", "o usuário é obrigatório e não pode ficar em branco")
 		}
 	}
 }
@@ -147,15 +147,15 @@ func TestValidate_SenhaVazia(t *testing.T) {
 		if credential.Id%2 == 1 {
 			credential.Senha = ""
 		} else {
-			credential.Senha = "Test"
+			credential.Senha = "Teste"
 		}
 		err = credential.Validar()
 		if err == nil {
 			if credential.Id%2 == 1 {
-				t.Error("Expected an error, but none returned")
+				t.Error("Esperava o erro 'a senha é obrigatória e não pode ficar em branco', mas nenhum retornou")
 			}
-		} else if err.Error() != "password is required and cannot be blank" {
-			t.Errorf("Expected error: %s", "password is required and cannot be blank")
+		} else if err.Error() != "a senha é obrigatória e não pode ficar em branco" {
+			t.Errorf("Erro esperado: %s", "a senha é obrigatória e não pode ficar em branco")
 		}
 	}
 }
@@ -167,7 +167,7 @@ func TestFormat_SaveData(t *testing.T) {
 		err = credential.Formatar(enum.TipoFormatacao_Cadastro)
 
 		if err != nil {
-			t.Errorf("Unexpected error: %s", err.Error())
+			t.Errorf("Erro inesperado: %s", err.Error())
 		}
 	}
 }
