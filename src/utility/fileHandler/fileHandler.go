@@ -26,6 +26,12 @@ func OpenFile(directoryPath string, filename string) (string, error) {
 	return string(data), nil
 }
 
+// CarregarArquivo: Abre o arquivo e retorna o mesmo
+func CarregarArquivo(nomeArquivo string) (file *os.File, err error) {
+	file, err = os.OpenFile(nomeArquivo, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	return
+}
+
 // WriteFile : writes the given content to a file
 func WriteFile(directoryPath string, filename string, content string) error {
 	fullPath := strings.ReplaceAll(filepath.Join(directoryPath, filename), "\\", "/")

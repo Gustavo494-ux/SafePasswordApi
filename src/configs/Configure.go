@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 	"safePasswordApi/src/security/encrypt/asymmetrical"
 	hashEncrpt "safePasswordApi/src/security/encrypt/hash"
 	symmetricEncryp "safePasswordApi/src/security/encrypt/symmetrical"
@@ -15,6 +14,12 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+)
+
+const (
+	FormatoDataHora   = "02/01/2006 15:04:05"
+	CaminhoArquivoLog = "./Log_safepassword.log"
+	RootDirectory     = "SafePasswordApi"
 )
 
 var (
@@ -28,7 +33,7 @@ var (
 	RSAPublicKeyPath  string
 	AESKeyPath        string
 	SecretKeyJWTPath  string
-	RootDirectory     string
+	ArquivoLog        os.File
 )
 
 // InitializeConfigurations : Performs the necessary setup for the project to be used
@@ -66,8 +71,6 @@ func loadEnvironmentVariables() {
 	RSAPublicKeyPath = os.Getenv("RSA_PUBLIC_KEY_PATH")
 	AESKeyPath = os.Getenv("AES_KEY_PATH")
 	SecretKeyJWTPath = os.Getenv("SECRET_KEY_JWT_PATH")
-
-	RootDirectory = strings.ToLower(os.Getenv(fmt.Sprintf("ROOT_DIRECTORY_%s", strings.ToUpper(runtime.GOOS))))
 }
 
 // ValidatePaths : Uses the GetAbsoluteOrRootConcatenatedPathKeys function to check if the given path is absolute. case will not be set to the root directory of the project + the last directory of the given path
