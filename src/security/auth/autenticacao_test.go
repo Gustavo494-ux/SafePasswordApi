@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"safePasswordApi/src/configs"
+	"safePasswordApi/src/routines/inicializacao"
 	"safePasswordApi/src/security/auth"
 	"testing"
 	"time"
@@ -14,6 +16,14 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 )
+
+// TestMain:Função executada antes das demais
+func TestMain(m *testing.M) {
+	inicializacao.CarregarDotEnv()
+	inicializacao.InicializarEncriptacao()
+	exitCode := m.Run()
+	os.Exit(exitCode)
+}
 
 func TestCriarTokenJWT(t *testing.T) {
 	tokenString, err := auth.CriarTokenJWT(uint64(1))
