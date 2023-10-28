@@ -5,11 +5,12 @@ import (
 	"safePasswordApi/src/configs"
 	"safePasswordApi/src/database"
 	"safePasswordApi/src/router"
+	"safePasswordApi/src/routines/inicializacao"
 	"time"
 )
 
 func init() {
-	configs.InitializeConfigurations()
+	inicializacao.Inicializar()
 	database.TestarConexao()
 }
 
