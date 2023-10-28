@@ -45,7 +45,12 @@ func (logger *LoggerType) configurarLog(nivelLog NivelLog) {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 
-	arquivoLog, err := fileHandler.CarregarArquivo(configs.CaminhoArquivoLog)
+	caminho, err := fileHandler.GetAbsoluteOrRootConcatenatedPath(configs.CaminhoArquivoLog, configs.RootDirectory)
+	if err != nil {
+		Logger().Fatal("Ocorreu um erro ao montar o caminho do diretorio raiz", err, caminho)
+	}
+
+	arquivoLog, err := fileHandler.CarregarArquivo(caminho)
 	if err != nil {
 		logger.Fatal("Erro ao carregar arquivo de log", err)
 	}
