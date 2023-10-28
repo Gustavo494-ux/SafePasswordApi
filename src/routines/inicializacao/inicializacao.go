@@ -4,4 +4,5 @@ package inicializacao
 func Inicializar() {
 	CarregarDotEnv()
 	inicializarEncriptacao()
+	inicializarMysql()
 }
