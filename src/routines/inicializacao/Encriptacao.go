@@ -7,7 +7,8 @@ import (
 
 // inicializarEncriptacao: realiza as configurações necessárias para utilizar cada função de encriptação
 func inicializarEncriptacao() {
-	inicializarRSA()
+	go inicializarRSA()
+	go inicializarAES()
 }
 
 // inicializarRSA: realiza as configurações necessárias para utilizar o RSA
@@ -19,4 +20,13 @@ func inicializarRSA() {
 		CaminhoChavePublica: configs.RSAPublicKey,
 	}
 	RSA.ConfigurarChavesRSA()
+}
+
+// inicializarAES: realiza as configurações necessárias para utilizar o AES
+func inicializarAES() {
+	aes := configuracoes.AES{
+		Chave:   &configs.AESKey,
+		Caminho: configs.AESKeyPath,
+	}
+	aes.ConfigurarChavesAES()
 }
