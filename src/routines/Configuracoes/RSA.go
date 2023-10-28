@@ -48,7 +48,7 @@ func (varRSA *RSA) ConfigurarChavePublicaRSA() {
 		if err != nil {
 			log.Fatal(fmt.Sprintf("Ocorreu um erro ao exportar a chave pública RSA, verifique: %s", varRSA.CaminhoChavePublica), err)
 		}
-		ExportarChaveParaArquivo(varRSA.CaminhoChavePrivada, *varRSA.ChavePrivada)
+		ExportarChaveParaArquivo(varRSA.CaminhoChavePublica, *varRSA.ChavePublica)
 	}
 }
 
@@ -77,7 +77,7 @@ func GerarChavePrivadaRSA() (chavePrivada *rsa.PrivateKey) {
 // ExportarChavePrivadaString: exporta a chave privada para string
 func (varRSA *RSA) ExportarChaveRSAPrivadaString(chavePrivada *rsa.PrivateKey) {
 	var err error
-	varRSA.CaminhoChavePrivada, err = asymmetrical.ExportPrivateKey(chavePrivada)
+	*varRSA.ChavePrivada, err = asymmetrical.ExportPrivateKey(chavePrivada)
 	if err != nil {
 		logger.Logger().Fatal("Erro ao exportar a chave privada RSA", err)
 	}

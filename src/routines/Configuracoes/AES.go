@@ -40,6 +40,7 @@ func configurarChave(caminho string, chave *string, tamanho int) {
 			if err != nil {
 				log.Fatal("Erro ao gerar uma chave AES", err)
 			}
+			ExportarChaveParaArquivo(caminho, *chave)
 
 		}
 	case len(*chave) == tamanho:
