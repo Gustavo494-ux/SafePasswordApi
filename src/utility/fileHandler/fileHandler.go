@@ -245,3 +245,9 @@ func GetAbsoluteOrRootConcatenatedPath(Path string, RootDirectory string) (strin
 	absolutePath := filepath.Join(RootDirectory, dir, file)
 	return absolutePath, nil
 }
+
+// RetornarCaminhoAbsolutoConcatenaRelativo: Retorna o caminho absoluto, se for inválido o caminho relativo será concatenado com o caminho absoluto do diretorio raiz.
+func RetornarCaminhoAbsolutoConcatenaRelativo(Path *string) (err error) {
+	*Path, err = GetAbsoluteOrRootConcatenatedPath(*Path, "SafePasswordApi")
+	return
+}
