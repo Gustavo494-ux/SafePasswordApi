@@ -83,7 +83,7 @@ func (varRSA *RSA) ExportarChaveRSAPrivadaString(chavePrivada *rsa.PrivateKey) {
 	}
 }
 
-// CarregarCaminhos: carrega os caminhos relacionados a RSA do env
+// CarregarCaminhosChavesRSA: carrega os caminhos relacionados a RSA do env
 func (varRSA *RSA) CarregarCaminhosChavesRSA() {
 	varRSA.CaminhoChavePrivada = tipo.Coalesce().Str(os.Getenv("RSA_PRIVATE_KEY_PATH"), "")
 	varRSA.CaminhoChavePublica = tipo.Coalesce().Str(os.Getenv("RSA_PUBLIC_KEY_PATH"), "")

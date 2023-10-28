@@ -18,7 +18,7 @@ func CarregarChaveDeArquivo(caminho string, chave *string) {
 	diretorio, nomeArquivo := filepath.Split(caminho)
 	*chave, err = fileHandler.OpenFile(diretorio, nomeArquivo)
 	if err != nil {
-		logger.Logger().Fatal("ocorreu um erro ao carregar uma das chaves RSA", err, caminho)
+		logger.Logger().Fatal("ocorreu um erro ao carregar uma chave", err, caminho)
 	}
 }
 
