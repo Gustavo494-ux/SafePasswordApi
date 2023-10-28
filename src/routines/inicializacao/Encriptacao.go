@@ -6,8 +6,8 @@ import (
 	"sync"
 )
 
-// inicializarEncriptacao: realiza as configurações necessárias para utilizar cada função de encriptação
-func inicializarEncriptacao() {
+// InicializarEncriptacao: realiza as configurações necessárias para utilizar cada função de encriptação
+func InicializarEncriptacao() {
 	var wg sync.WaitGroup
 
 	wg.Add(3)

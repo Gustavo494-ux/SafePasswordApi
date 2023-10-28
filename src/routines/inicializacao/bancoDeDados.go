@@ -5,8 +5,8 @@ import (
 	configuracoes "safePasswordApi/src/routines/Configuracoes"
 )
 
-// inicializarMysql: realiza as configurações necessarias para o Mysql
-func inicializarMysql() {
+// InicializarMysql: realiza as configurações necessarias para o Mysql
+func InicializarMysql() {
 	Mysql := configuracoes.BancoDeDados{
 		StringConexao: &configs.StringConnection,
 	}
