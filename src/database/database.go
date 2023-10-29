@@ -17,17 +17,16 @@ func Conectar() (db *sqlx.DB, err error) {
 		logger.Logger().Error(logsCatalogados.ErroConexaoBancoDeDados, err, configs.StringConnection)
 	}
 
-	logger.Logger().Info(logsCatalogados.ConexaoBandoDeDadosEstabelecida)
+	logger.Logger().Rastreamento(logsCatalogados.ConexaoBandoDeDadosEstabelecida)
 	return
 }
 
 // TestarConexao: realiza o teste de conexão
-func TestarConexao() (err error) {
-	_, err = sqlx.Connect("mysql", configs.StringConnection)
+func TestarConexao() {
+	_, err := Conectar()
 	if err != nil {
-		logger.Logger().Error(logsCatalogados.ErroConexaoBancoDeDados, err, configs.StringConnection)
+		logger.Logger().Fatal(logsCatalogados.ErroConexaoBancoDeDados, err, configs.StringConnection)
 		return
 	}
-	logger.Logger().Info(logsCatalogados.TesteConexaoRealizado)
-	return
+	logger.Logger().Rastreamento(logsCatalogados.TesteConexaoRealizado)
 }
