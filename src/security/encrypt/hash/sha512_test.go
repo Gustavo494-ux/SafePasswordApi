@@ -1,20 +1,34 @@
 package hashEncrpt_test
 
 import (
+	"os"
+	"safePasswordApi/src/modules/logger"
+	"safePasswordApi/src/routines/inicializacao"
 	hashEncrpt "safePasswordApi/src/security/encrypt/hash"
 	"testing"
 )
+
+// TestMain:Função executada antes das demais
+func TestMain(m *testing.M) {
+	inicializacao.CarregarDotEnv()
+	inicializacao.InicializarEncriptacao()
+	exitCode := m.Run()
+	os.Exit(exitCode)
+}
 
 func TestGenerateSHA512(t *testing.T) {
 	data := "password123"
 	hash, err := hashEncrpt.GenerateSHA512(data)
 	if err != nil {
-		t.Errorf("Error generating SHA512 hash: %v", err)
+		t.Errorf("Erro ao gerar a hash Sha512: %v", err)
+		logger.Logger().Error("Erro ao gerar a hash Sha512", err)
 	}
 
 	if hash == "" {
-		t.Error("The generated hash should not be empty")
+		t.Error("O hash gerado não deve estar vazio")
+		logger.Logger().Error("O hash gerado não deve estar vazio", err)
 	}
+	logger.Logger().Info("Teste TestGenerateSHA512 executado com sucesso!")
 }
 
 func TestCompareSHA512_ValidCredentials(t *testing.T) {
@@ -23,8 +37,10 @@ func TestCompareSHA512_ValidCredentials(t *testing.T) {
 
 	err := hashEncrpt.CompareSHA512(hash, decryptedPassword)
 	if err != nil {
-		t.Errorf("Error comparing SHA512 hashes: %v", err)
+		t.Errorf("Erro ao comparar hashes SHA512: %v", err)
+		logger.Logger().Error("Erro ao comparar hashes SHA512", err)
 	}
+	logger.Logger().Info("Teste TestCompareSHA512_ValidCredentials executado com sucesso!")
 }
 
 func TestCompareSHA512_InvalidCredentials(t *testing.T) {
@@ -33,6 +49,8 @@ func TestCompareSHA512_InvalidCredentials(t *testing.T) {
 
 	err := hashEncrpt.CompareSHA512(hash, decryptedPassword)
 	if err == nil {
-		t.Error("Expected error when comparing SHA512 hashes, but got nil")
+		t.Error("Erro esperado ao comparar hashes SHA512, mas não ocorreu")
+		logger.Logger().Error("Erro esperado ao comparar hashes SHA512, mas não ocorreu", err)
 	}
+	logger.Logger().Info("Teste TestCompareSHA512_InvalidCredentials executado com sucesso!")
 }
