@@ -58,11 +58,12 @@ func (logger *LoggerType) configurarLog(nivelLog NivelLog) {
 	logger.log = zerolog.New(arquivoLog).With().Timestamp().Logger()
 }
 
-// Info: cria um log de informação
-func (logger *LoggerType) Info(mensagem string, dados ...interface{}) {
+// Fatal: cria um log de erro fatal
+func (logger *LoggerType) Fatal(mensagem string, err error, dados ...interface{}) {
 	logger.log.
-		Info().
+		Fatal().
 		Caller(1).
+		Err(err).
 		Str("Dados Adicionais", logger.converterSliceDadosParaJsonString(dados)).
 		Msg(mensagem)
 }
@@ -77,12 +78,38 @@ func (logger *LoggerType) Error(mensagem string, err error, dados ...interface{}
 		Msg(mensagem)
 }
 
-// Fatal: cria um log de erro fatal
-func (logger *LoggerType) Fatal(mensagem string, err error, dados ...interface{}) {
+// Alerta: cria um log de Alerta
+func (logger *LoggerType) Alerta(mensagem string, dados ...interface{}) {
 	logger.log.
-		Fatal().
+		Warn().
 		Caller(1).
-		Err(err).
+		Str("Dados Adicionais", logger.converterSliceDadosParaJsonString(dados)).
+		Msg(mensagem)
+}
+
+// Info: cria um log de informação
+func (logger *LoggerType) Info(mensagem string, dados ...interface{}) {
+	logger.log.
+		Info().
+		Caller(1).
+		Str("Dados Adicionais", logger.converterSliceDadosParaJsonString(dados)).
+		Msg(mensagem)
+}
+
+// Debug: cria um log de Debug
+func (logger *LoggerType) Debug(mensagem string, dados ...interface{}) {
+	logger.log.
+		Debug().
+		Caller(1).
+		Str("Dados Adicionais", logger.converterSliceDadosParaJsonString(dados)).
+		Msg(mensagem)
+}
+
+// Rastreamento: cria um log de rastreamento
+func (logger *LoggerType) Rastreamento(mensagem string, dados ...interface{}) {
+	logger.log.
+		Trace().
+		Caller(1).
 		Str("Dados Adicionais", logger.converterSliceDadosParaJsonString(dados)).
 		Msg(mensagem)
 }
