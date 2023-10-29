@@ -23,6 +23,6 @@ CREATE TABLE IF NOT exists Credenciais(
 
 alter table Credenciais add foreign key(UsuarioId) references Usuarios(id) ON DELETE CASCADE;
 
-CREATE INDEX idx_email_hash ON Users (Email_Hash);
+CREATE INDEX idx_email_hash ON Usuarios (Email_Hash);
 
 
