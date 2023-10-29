@@ -1,10 +1,10 @@
 package fileHandler_test
 
 import (
-	// "fmt"
-	// "io/ioutil"
+	"fmt"
 	"os"
 	"path/filepath"
+	"safePasswordApi/src/modules/logger"
 	"safePasswordApi/src/utility/fileHandler"
 	"strings"
 	"testing"
@@ -19,78 +19,95 @@ func TestCreateFile(t *testing.T) {
 	dir, _ := os.Getwd()
 	_, err := fileHandler.CreateFile(dir, fileName)
 	if err != nil {
-		t.Errorf("CreateFile failed with error: %s", err)
+		t.Errorf("Falha ao criar o arquivo: %s", err)
+		logger.Logger().Error("Falha ao criar o arquivo", err)
 	}
 	os.Remove(fileName)
+	logger.Logger().Info("Teste TestCreateFile executado com sucesso!")
 }
 
 func TestOpenFile(t *testing.T) {
 	dir, _ := os.Getwd()
-	expectedContent := "Test file content"
+	expectedContent := "Conteúdo do arquivo de teste"
 	err := os.WriteFile(fileName, []byte(expectedContent), 0644)
 	if err != nil {
-		t.Fatalf("Failed to write test file: %s", err)
+		t.Fatalf("Falha ao escrever o arquivo de teste: %s", err)
+		logger.Logger().Error("Falha ao escrever o arquivo de teste", err)
 	}
 	defer os.Remove(fileName)
 
 	content, err := fileHandler.OpenFile(dir, fileName)
 	if err != nil {
-		t.Errorf("OpenFile failed with error: %s", err)
+		t.Errorf("Falha ao abrir o arquivo: %s", err)
+		logger.Logger().Error("Falha ao abrir o arquivo", err)
 	}
 
 	if content != expectedContent {
-		t.Errorf("OpenFile returned incorrect content. Expected: %s, Got: %s", expectedContent, content)
+		t.Errorf("OpenFile retornou conteúdo incorreto. Esperado: %s, Obtido: %s", expectedContent, content)
+		logger.Logger().Error(fmt.Sprintf("OpenFile retornou conteúdo incorreto. Esperado: %s, Obtido: %s", expectedContent, content), err)
 	}
+
+	logger.Logger().Info("Teste TestOpenFile executado com sucesso!")
 }
 
 func TestWriteFile(t *testing.T) {
 	dir, _ := os.Getwd()
-	content := "Test file content"
+	content := "Conteúdo do arquivo de teste"
 	err := fileHandler.WriteFile(dir, fileName, content)
 	if err != nil {
-		t.Errorf("WriteFile failed with error: %s", err)
+		t.Errorf("Falha ao escrever no arquivo: %s", err)
+		logger.Logger().Error("Falha ao escrever no arquivo", err)
 	}
 	defer os.Remove(fileName)
 
 	fileContent, err := os.ReadFile(fileName)
 	if err != nil {
-		t.Fatalf("Failed to read test file: %s", err)
+		t.Fatalf("Falha ao ler o arquivo de teste: %s", err)
+		logger.Logger().Error("Falha ao ler o arquivo de teste", err)
 	}
 
 	if string(fileContent) != content {
-		t.Errorf("WriteFile did not write the expected content. Expected: %s, Got: %s", content, string(fileContent))
+		t.Errorf("WriteFile não escreveu o conteúdo esperado. Esperado: %s, Obtido: %s", content, string(fileContent))
+		logger.Logger().Error(fmt.Sprintf("WriteFile não escreveu o conteúdo esperado. Esperado: %s, Obtido: %s", content, string(fileContent)), err)
 	}
+
+	logger.Logger().Info("Teste TestWriteFile executado com sucesso!")
 }
 
 func TestAppendToFile(t *testing.T) {
-	initialContent := "Initial content"
-	appendedContent := "Appended content"
+	initialContent := "Conteúdo inicial"
+	appendedContent := "Conteúdo anexado"
 
 	directoryPath, _ := os.Getwd()
-	// directoryPath = fmt.Sprintf("%s/fileHandler", directoryPath)
 	fullPath := strings.ReplaceAll(filepath.Join(directoryPath, fileName), "\\", "/")
 	directoryPath = directoryPath + "\\"
 
 	err := os.WriteFile(fullPath, []byte(initialContent), 0644)
 	if err != nil {
-		t.Fatalf("Failed to write test file: %s", err)
+		t.Fatalf("Falha ao escrever o arquivo de teste: %s", err)
+		logger.Logger().Error("Falha ao escrever o arquivo de teste", err)
 	}
 	defer os.Remove(fullPath)
 
 	err = fileHandler.AppendToFile(directoryPath, fileName, appendedContent)
 	if err != nil {
-		t.Errorf("AppendToFile failed with error: %s", err)
+		t.Errorf("Falha ao anexar ao arquivo: %s", err)
+		logger.Logger().Error("Falha ao anexar ao arquivo", err)
 	}
 
 	fileContent, err := os.ReadFile(fullPath)
 	if err != nil {
-		t.Fatalf("Failed to read test file: %s", err)
+		t.Fatalf("Falha ao ler o arquivo de teste: %s", err)
+		logger.Logger().Error("Falha ao ler o arquivo de teste", err)
 	}
 
 	expectedContent := initialContent + appendedContent
 	if string(fileContent) != expectedContent {
-		t.Errorf("AppendToFile did not append the expected content. Expected: %s, Got: %s", expectedContent, string(fileContent))
+		t.Errorf("AppendToFile não anexou o conteúdo esperado. Esperado: %s, Obtido: %s", expectedContent, string(fileContent))
+		logger.Logger().Error(fmt.Sprintf("AppendToFile não anexou o conteúdo esperado. Esperado: %s, Obtido: %s", expectedContent, string(fileContent)), err)
 	}
+
+	logger.Logger().Info("Teste TestAppendToFile executado com sucesso!")
 }
 
 func TestDeleteFile(t *testing.T) {
@@ -98,82 +115,97 @@ func TestDeleteFile(t *testing.T) {
 	fullPath := filepath.Join(dir, fileName)
 	file, err := os.Create(fullPath)
 	if err != nil {
-		t.Errorf("CreateFile failed with error: %s", err)
+		t.Errorf("Falha ao criar o arquivo: %s", err)
+		logger.Logger().Error("Falha ao criar o arquivo", err)
 	}
 	file.Close()
 	err = fileHandler.DeleteFile(dir, fileName)
 	if err != nil {
-		t.Errorf("Error deleting file: %s", err)
+		t.Errorf("Erro ao excluir o arquivo: %s", err)
+		logger.Logger().Error("Erro ao excluir o arquivo", err)
 	}
 
 	_, err = os.Stat(fileName)
 	if !os.IsNotExist(err) {
-		t.Errorf("DeleteFile did not delete the file as expected")
+		t.Errorf("DeleteFile não excluiu o arquivo como esperado")
+		logger.Logger().Error("DeleteFile não excluiu o arquivo como esperado", err)
 	}
+
+	logger.Logger().Info("Teste TestDeleteFile executado com sucesso!")
 }
 
 func TestRenameFile(t *testing.T) {
 	dir, _ := os.Getwd()
 	newFileName := "newfile.txt"
 
-	fullPath_initial := strings.ReplaceAll(filepath.Join(dir, fileName), "\\", "/")
-	fullPath_rename := strings.ReplaceAll(filepath.Join(dir, newFileName), "\\", "/")
+	fullPathInitial := strings.ReplaceAll(filepath.Join(dir, fileName), "\\", "/")
+	fullPathRename := strings.ReplaceAll(filepath.Join(dir, newFileName), "\\", "/")
 
-	err := os.WriteFile(fullPath_initial, []byte("Test file content"), 0644)
+	err := os.WriteFile(fullPathInitial, []byte("Conteúdo do arquivo de teste"), 0644)
 	if err != nil {
-		t.Fatalf("Failed to write test file: %s", err)
+		t.Fatalf("Falha ao escrever o arquivo de teste: %s", err)
+		logger.Logger().Error("Falha ao escrever o arquivo de teste", err)
 	}
 	defer os.Remove(newFileName)
 
 	err = fileHandler.RenameFile(dir, fileName, newFileName)
 	if err != nil {
-		t.Errorf("RenameFile failed with error: %s", err)
+		t.Errorf("Falha ao renomear o arquivo: %s", err)
+		logger.Logger().Error("Falha ao renomear o arquivo", err)
 	}
 
-	_, err = os.Stat(fullPath_initial)
+	_, err = os.Stat(fullPathInitial)
 	if !os.IsNotExist(err) {
-		t.Errorf("RenameFile did not rename the file as expected")
+		t.Errorf("RenameFile não renomeou o arquivo como esperado")
+		logger.Logger().Error("RenameFile não renomeou o arquivo como esperado", err)
 	}
 
-	_, err = os.Stat(fullPath_rename)
+	_, err = os.Stat(fullPathRename)
 	if os.IsNotExist(err) {
-		t.Errorf("RenameFile did not create the renamed file as expected")
+		t.Errorf("RenameFile não criou o arquivo renomeado como esperado")
+		logger.Logger().Error("RenameFile não criou o arquivo renomeado como esperado", err)
 	}
+
+	logger.Logger().Info("Teste TestRenameFile executado com sucesso!")
 }
 
 func TestGetFileList(t *testing.T) {
-	// Create a temporary directory for testing purposes
+	// Criar um diretório temporário para fins de teste
 	currentDirectory, err := os.Getwd()
 	if err != nil {
-		t.Fatalf("Error fetching current directory path, err: %s", err)
+		t.Fatalf("Erro ao buscar o caminho do diretório atual, erro: %s", err)
+		logger.Logger().Error("Erro ao buscar o caminho do diretório atual, erro", err)
 	}
 
 	fullPath := strings.ReplaceAll(filepath.Join(currentDirectory, "test_directory"), "\\", "/")
 
 	err = os.MkdirAll(fullPath, 0750)
 	if err != nil {
-		t.Fatalf("Failed to create temporary directory: %v", err)
+		t.Fatalf("Falha ao criar o diretório temporário: %v", err)
+		logger.Logger().Error("Falha ao criar o diretório temporário", err)
 	}
 	defer os.RemoveAll("test_directory")
 
-	// Create test files inside the directory
+	// Criar arquivos de teste dentro do diretório
 	testFiles := []string{"file1.txt", "file2.txt", "file3.txt"}
 	for _, filename := range testFiles {
 		filePath := filepath.Join(fullPath, filename)
 		file, err := os.Create(filePath)
 		if err != nil {
-			t.Fatalf("Failed to create test file: %v", err)
+			t.Fatalf("Falha ao criar o arquivo de teste: %v", err)
+			logger.Logger().Error("Falha ao criar o arquivo de teste", err)
 		}
 		defer file.Close()
 	}
 
-	// Execute the GetFileList function on the test directory
+	// Executar a função GetFileList no diretório de teste
 	fileList, err := fileHandler.GetFileList(fullPath)
 	if err != nil {
-		t.Fatalf("Error getting file list: %v", err)
+		t.Fatalf("Erro ao obter a lista de arquivos: %v", err)
+		logger.Logger().Error("Erro ao obter a lista de arquivos", err)
 	}
 
-	// Check if all the test files are present in the returned file list
+	// Verificar se todos os arquivos de teste estão presentes na lista de arquivos retornada
 	for _, filename := range testFiles {
 		found := false
 		for _, file := range fileList {
@@ -183,68 +215,82 @@ func TestGetFileList(t *testing.T) {
 			}
 		}
 		if !found {
-			t.Errorf("Expected file missing in the returned file list: %s", filename)
+			t.Errorf("Arquivo esperado ausente na lista de arquivos retornada: %s", filename)
+			logger.Logger().Error("Arquivo esperado ausente na lista de arquivos retornada", err)
 		}
 	}
 
-	// Check if there are no extra files in the returned file list
+	// Verificar se não há arquivos extras na lista de arquivos retornada
 	if len(fileList) != len(testFiles) {
-		t.Errorf("Number of returned files is different than expected. Expected: %d, Returned: %d", len(testFiles), len(fileList))
+		t.Errorf("O número de arquivos retornados é diferente do esperado. Esperado: %d, Retornado: %d", len(testFiles), len(fileList))
+		logger.Logger().Error(fmt.Sprintf("O número de arquivos retornados é diferente do esperado. Esperado: %d, Retornado: %d", len(testFiles), len(fileList)), err)
 	}
+
+	logger.Logger().Info("Teste TestGetFileList executado com sucesso!")
 }
 
 func TestCreateDirectory(t *testing.T) {
-	// Specify the base path for the new directories
+	// Especificar o caminho base para os novos diretórios
 	basePath := "./src/utility/teste"
 
-	// Create a slice of folder names
-	folders := []string{"folder1", "folder2", "folder3", "folder4", "folder5", "folder6", "folder7", "folder8", "folder9", "folder10"}
+	// Criar uma lista de nomes de pastas
+	pastas := []string{"pasta1", "pasta2", "pasta3", "pasta4", "pasta5", "pasta6", "pasta7", "pasta8", "pasta9", "pasta10"}
 
-	// Iterate over the folders slice
-	for _, folder := range folders {
-		// Construct the full path for each directory
-		path := filepath.Join(basePath, folder)
+	// Iterar sobre a lista de pastas
+	for _, pasta := range pastas {
+		// Construir o caminho completo para cada diretório
+		caminho := filepath.Join(basePath, pasta)
 
-		// Call the CreateDirectory function
-		err := fileHandler.CreateDirectory(path)
+		// Chamar a função CreateDirectory
+		err := fileHandler.CreateDirectory(caminho)
 		if err != nil {
-			t.Errorf("Failed to create directory: %v", err)
+			t.Errorf("Falha ao criar o diretório: %v", err)
+			logger.Logger().Error("Falha ao criar o diretório", err)
 		}
 	}
 
 	sliceBasePath := strings.Split(basePath, "/")
 	err := os.RemoveAll("./" + sliceBasePath[1])
 	if err != nil {
-		t.Errorf("Failed to remove directory: %v", err)
+		t.Errorf("Falha ao remover o diretório: %v", err)
+		logger.Logger().Error("Falha ao remover o diretório", err)
 	}
+
+	logger.Logger().Info("Teste TestCreateDirectory executado com sucesso!")
 }
 
 func TestGetFileInfo(t *testing.T) {
-	// Test for a file
-	filePath := "./src/utility/file.txt"
-	fileInfo, err := fileHandler.GetFileInfo(filePath)
+	// Teste para um arquivo
+	caminhoDoArquivo := "./src/utility/file.txt"
+	infoDoArquivo, err := fileHandler.GetFileInfo(caminhoDoArquivo)
 	if err != nil {
-		t.Errorf("Failed to get file info: %v", err)
+		t.Errorf("Falha ao obter informações do arquivo: %v", err)
+		logger.Logger().Error("Falha ao obter informações do arquivo", err)
 	}
 
-	if fileInfo != nil {
-		// Check if it's a file
-		if !fileInfo.Mode().IsRegular() {
-			t.Errorf("Expected a file, got directory")
+	if infoDoArquivo != nil {
+		// Verificar se é um arquivo
+		if !infoDoArquivo.Mode().IsRegular() {
+			t.Errorf("Esperado um arquivo, obtido um diretório")
+			logger.Logger().Error("Esperado um arquivo, obtido um diretório", err)
 		}
 	}
 
-	// Test for a directory
-	dirPath := "./src/utility"
-	dirInfo, err := fileHandler.GetFileInfo(dirPath)
+	// Teste para um diretório
+	caminhoDoDiretório := "./src/utility"
+	infoDoDiretório, err := fileHandler.GetFileInfo(caminhoDoDiretório)
 	if err != nil {
-		t.Errorf("Failed to get directory info: %v", err)
+		t.Errorf("Falha ao obter informações do diretório: %v", err)
+		logger.Logger().Error("Falha ao obter informações do diretório", err)
 	}
 
-	if dirInfo != nil {
-		// Check if it's a directory
-		if !dirInfo.Mode().IsDir() {
-			t.Errorf("Expected a directory, got file")
+	if infoDoDiretório != nil {
+		// Verificar se é um diretório
+		if !infoDoDiretório.Mode().IsDir() {
+			t.Errorf("Esperado um diretório, obtido um arquivo")
+			logger.Logger().Error("Esperado um diretório, obtido um arquivo", err)
 		}
 	}
+
+	logger.Logger().Info("Teste TestGetFileInfo executado com sucesso!")
 }
