@@ -5,4 +5,5 @@ func Inicializar() {
 	CarregarDotEnv()
 	InicializarEncriptacao()
 	InicializarMysql()
+	InicializaAPI()
 }
