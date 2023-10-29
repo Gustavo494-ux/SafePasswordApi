@@ -26,7 +26,7 @@ func CriarTokenJWT(usuarioID uint64) (string, error) {
 
 // ValidarToken verifica se o token passado na requisição é válido
 func ValidarToken(c echo.Context) error {
-	tokenString := extrairToken(c)
+	tokenString := ExtrairToken(c)
 	_, erro := jwt.Parse(tokenString, retornarChaveDeVerificacao)
 	if erro != nil {
 		return erro
@@ -36,7 +36,7 @@ func ValidarToken(c echo.Context) error {
 
 // ExtrairUsuarioID retorna o usuarioId que está salvo no token
 func ExtrairUsuarioID(c echo.Context) (uint64, error) {
-	tokenString := extrairToken(c)
+	tokenString := ExtrairToken(c)
 	token, erro := jwt.Parse(tokenString, retornarChaveDeVerificacao)
 	if erro != nil {
 		return 0, erro
@@ -54,7 +54,8 @@ func ExtrairUsuarioID(c echo.Context) (uint64, error) {
 	return 0, errors.New("token inválido")
 }
 
-func extrairToken(c echo.Context) string {
+// ExtrairToken: Extrai o Token da requisição
+func ExtrairToken(c echo.Context) string {
 	token := c.Request().Header.Get("Authorization")
 	if len(strings.Split(token, " ")) == 2 {
 		return strings.Split(token, " ")[1]
