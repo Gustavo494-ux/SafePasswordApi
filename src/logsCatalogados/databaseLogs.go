@@ -1,7 +1,7 @@
 package logsCatalogados
 
 const (
-	ErroConexaoBancoDeDados         = "Erro ao conectar ao banco de dados"
-	ConexaoBandoDeDadosEstabelecida = "Conexão com o banco de dados estabelecida com sucesso"
-	TesteConexaoRealizado           = "Teste de conexão com o banco de dados realizado com sucesso"
+	Banco_ErroConexao           = "Erro ao conectar ao banco de dados"
+	Banco_ConexaoEstabelecida   = "Conexão com o banco de dados estabelecida com sucesso"
+	Banco_TesteConexaoRealizado = "Teste de conexão com o banco de dados realizado com sucesso"
 )
