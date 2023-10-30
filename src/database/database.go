@@ -14,10 +14,10 @@ import (
 func Conectar() (db *sqlx.DB, err error) {
 	db, err = sqlx.Open("mysql", configs.StringConnection)
 	if err != nil {
-		logger.Logger().Error(logsCatalogados.Banco_ErroConexao, err, configs.StringConnection)
+		logger.Logger().Error(logsCatalogados.LogBanco_ErroConexao, err, configs.StringConnection)
 	}
 
-	logger.Logger().Rastreamento(logsCatalogados.Banco_ConexaoEstabelecida)
+	logger.Logger().Rastreamento(logsCatalogados.LogBanco_ConexaoEstabelecida)
 	return
 }
 
@@ -25,8 +25,8 @@ func Conectar() (db *sqlx.DB, err error) {
 func TestarConexao() {
 	_, err := Conectar()
 	if err != nil {
-		logger.Logger().Fatal(logsCatalogados.Banco_TesteConexaoRealizado, err, configs.StringConnection)
+		logger.Logger().Fatal(logsCatalogados.LogBanco_ErroConexao, err, configs.StringConnection)
 		return
 	}
-	logger.Logger().Rastreamento(logsCatalogados.Banco_TesteConexaoRealizado)
+	logger.Logger().Rastreamento(logsCatalogados.LogBanco_TesteConexaoRealizado)
 }

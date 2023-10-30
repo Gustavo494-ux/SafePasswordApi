@@ -1,9 +1,9 @@
 package models
 
 import (
-	"errors"
 	"safePasswordApi/src/configs"
 	enum "safePasswordApi/src/enum/geral"
+	"safePasswordApi/src/logsCatalogados"
 	"safePasswordApi/src/security/encrypt/asymmetrical"
 	hashEncrpt "safePasswordApi/src/security/encrypt/hash"
 	symmetrical "safePasswordApi/src/security/encrypt/symmetrical"
@@ -30,7 +30,6 @@ func (usuario *Usuario) Preparar(TipoPreparacao enum.TipoPreparacao) error {
 			return err
 		}
 	}
-
 	if err := usuario.Formatar(enum.TipoFormatacao(TipoPreparacao)); err != nil {
 		return err
 	}
@@ -41,19 +40,19 @@ func (usuario *Usuario) Preparar(TipoPreparacao enum.TipoPreparacao) error {
 // Validar verifica se os campos do usuário são válidos com base no tipo determinado.
 func (usuario *Usuario) Validar(TipoValidacao enum.TipoValidacao) error {
 	if usuario.Nome == "" {
-		return errors.New("nome é obrigatório e não pode ficar em branco")
+		return logsCatalogados.ErroUsuario_NomeVazio
 	}
 
 	if usuario.Email == "" {
-		return errors.New("email é obrigatório e não pode ficar em branco")
+		return logsCatalogados.ErroUsuario_EmailVazio
 	}
 
 	if err := checkmail.ValidateFormat(usuario.Email); err != nil {
-		return errors.New("formato de email inválido")
+		return logsCatalogados.ErroUsuario_EmailInvalido
 	}
 
 	if usuario.Senha == "" && (TipoValidacao == enum.TipoValidacao_Cadastro || TipoValidacao == enum.TipoValidacao_Atualizar) {
-		return errors.New("senha é obrigatório e não pode ficar em branco")
+		return logsCatalogados.ErroUsuario_SenhaVazia
 	}
 
 	return nil
