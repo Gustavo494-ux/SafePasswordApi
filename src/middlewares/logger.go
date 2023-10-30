@@ -9,14 +9,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
-type requisicao struct {
-	Url         string
-	Ip          string
-	Token       string
-	TokenValido bool
-	UsuarioId   int
-}
-
 func LoggerZeroLogPersonalizado(c echo.Context, v middleware.RequestLoggerValues) error {
 	requestID := v.RequestID
 
