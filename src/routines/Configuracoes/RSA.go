@@ -3,7 +3,6 @@ package configuracoes
 import (
 	"crypto/rsa"
 	"fmt"
-	"log"
 	"os"
 
 	"safePasswordApi/src/modules/logger"
@@ -36,17 +35,17 @@ func (varRSA *RSA) ConfigurarChavePublicaRSA() {
 	if err != nil {
 		err = asymmetrical.ValidatePrivateKey(*varRSA.ChavePrivada)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("Chave privada RSA inválida, verifique: %s", varRSA.CaminhoChavePrivada), err)
+			logger.Logger().Fatal(fmt.Sprintf("Chave privada RSA inválida, verifique: %s", varRSA.CaminhoChavePrivada), err)
 		}
 
 		PublicKey, err := asymmetrical.GeneratePublicKey(*varRSA.ChavePrivada)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("Ocorreu um erro ao gerar a chave pública RSA, verifique: %s", varRSA.CaminhoChavePublica), err)
+			logger.Logger().Fatal(fmt.Sprintf("Ocorreu um erro ao gerar a chave pública RSA, verifique: %s", varRSA.CaminhoChavePublica), err)
 		}
 
 		*varRSA.ChavePublica, err = asymmetrical.ExportPublicKey(PublicKey)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("Ocorreu um erro ao exportar a chave pública RSA, verifique: %s", varRSA.CaminhoChavePublica), err)
+			logger.Logger().Fatal(fmt.Sprintf("Ocorreu um erro ao exportar a chave pública RSA, verifique: %s", varRSA.CaminhoChavePublica), err)
 		}
 		ExportarChaveParaArquivo(varRSA.CaminhoChavePublica, *varRSA.ChavePublica)
 	}
