@@ -3,9 +3,10 @@ package middlewares
 import (
 	"fmt"
 	"safePasswordApi/src/modules/logger"
-	"safePasswordApi/src/security/auth"
+	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 type requisicao struct {
@@ -16,31 +17,38 @@ type requisicao struct {
 	UsuarioId   int
 }
 
-func Logger(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		logger.Logger().Info("Requisição realizada", montarRequisicao(c))
-		return nil
-	}
-}
+func LoggerZeroLogPersonalizado(c echo.Context, v middleware.RequestLoggerValues) error {
+	requestID := v.RequestID
 
-func montarRequisicao(c echo.Context) requisicao {
-	token := auth.ExtrairToken(c)
-	var valido bool
-	if auth.ValidarToken(c) == nil {
-		valido = true
-	}
-	idUsuario, err := auth.ExtrairUsuarioID(c)
-	if err != nil && valido {
-		logger.Logger().Error(fmt.Sprintf("Ocorreu um erro ao tentar extrair o UsuarioId do token %s", token), err)
-		return requisicao{}
-	}
+	// Capturar informações do cliente
+	clientIP := c.RealIP()
+	userAgent := c.Request().UserAgent()
 
-	r := requisicao{
-		Url:         c.Request().Header.Get("curl"),
-		Ip:          c.RealIP(),
-		Token:       token,
-		TokenValido: valido,
-		UsuarioId:   int(idUsuario),
-	}
-	return r
+	// Capturar informações da solicitação
+	httpMethod := c.Request().Method
+	requestURI := c.Request().RequestURI
+	requestHeaders := c.Request().Header
+
+	// Capturar informações adicionais
+	currentTime := time.Now()
+	// Realizar ações na solicitação e medir o tempo de resposta
+	start := time.Now()
+	latency := time.Since(start)
+	responseSize := c.Response().Size
+
+	responseString := fmt.Sprintf("ID da Requisição: %s,"+
+		"Informações do Cliente{"+
+		"Endereço IP: %s,"+
+		"User-Agent: %s,"+
+		"Informações da Solicitação: "+
+		"Método HTTP: %s,"+
+		"URI: %s,"+
+		"Cabeçalhos da Solicitação: %v,"+
+		"Tempo de Resposta: %s,"+
+		"Latência: %s,"+
+		"Tamanho da Resposta: %d bytes,"+
+		"Status do Usuário: %s "+
+		" }", requestID, clientIP, userAgent, httpMethod, requestURI, requestHeaders, time.Since(start), latency, responseSize, currentTime)
+	logger.Logger().Info("Requisição realizada", responseString)
+	return nil
 }
