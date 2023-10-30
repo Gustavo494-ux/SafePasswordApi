@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"safePasswordApi/src/database"
 	enum "safePasswordApi/src/enum/geral"
+	"safePasswordApi/src/logsCatalogados"
 	"safePasswordApi/src/models"
 	"safePasswordApi/src/repository"
 	"strconv"
@@ -16,35 +17,68 @@ import (
 func CriarUsuario(c echo.Context) error {
 	var usuario models.Usuario
 	if err := c.Bind(&usuario); err != nil {
-		return c.String(http.StatusBadRequest, err.Error())
+		return models.RespostaRequisicao(c).Erro(
+			http.StatusBadRequest, err, logsCatalogados.ErroUsuario_JsonInvalido.Error(),
+			usuario,
+		).JSON()
 	}
 
 	if err := usuario.Preparar(enum.TipoPreparacao_Cadastro); err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return models.RespostaRequisicao(c).Erro(
+			http.StatusBadRequest, err, logsCatalogados.ErroUsuario_PrepararCadastro.Error(),
+			usuario,
+		).JSON()
 	}
 
 	db, err := database.Conectar()
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return models.RespostaRequisicao(c).Erro(
+			http.StatusInternalServerError, err, logsCatalogados.LogBanco_ErroConexao,
+		).JSON()
 	}
 	defer db.Close()
 
 	repo := repository.NovoRepositorioUsuario(db)
+
+	usuarioBanco, err := repo.BuscarPorEmail(usuario.Email_Hash)
+	if err != nil && err != logsCatalogados.ErroRepositorio_DadosNaoEncontrados {
+		return models.RespostaRequisicao(c).Erro(
+			http.StatusInternalServerError, err, err.Error(),
+		).JSON()
+	}
+
+	if usuarioBanco.ID > 0 {
+		return models.RespostaRequisicao(c).Erro(
+			http.StatusConflict, logsCatalogados.ErroUsuario_UsuarioExistente, logsCatalogados.ErroUsuario_UsuarioExistente.Error(),
+		).JSON()
+	}
+
 	usuarioId, err := repo.Criar(usuario)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return models.RespostaRequisicao(c).Erro(
+			http.StatusInternalServerError, err, err.Error(),
+		).JSON()
 	}
 
-	usuario, err = repo.BuscarPorId(usuarioId)
+	usuarioBanco, err = repo.BuscarPorId(uint64(usuarioId))
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		if err == logsCatalogados.ErroRepositorio_DadosNaoEncontrados {
+			return models.RespostaRequisicao(c).Erro(
+				http.StatusInternalServerError, err, "Dados não encontrados após o cadastro",
+			).JSON()
+		}
+		return models.RespostaRequisicao(c).Erro(
+			http.StatusInternalServerError, err, err.Error(),
+		).JSON()
 	}
 
-	if err := usuario.Preparar(enum.TipoPreparacao_Consulta); err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+	if err := usuarioBanco.Preparar(enum.TipoPreparacao_Consulta); err != nil {
+		return models.RespostaRequisicao(c).Erro(
+			http.StatusInternalServerError, err, logsCatalogados.ErroUsuario_PrepararConsulta.Error(),
+		).JSON()
 	}
 
-	return c.JSON(http.StatusCreated, usuario)
+	return models.RespostaRequisicao(c).Sucesso(http.StatusCreated, usuarioBanco, "Solicitação atendida sem erros").JSON()
 }
 
 // BuscarUsuarioPorId encontra um usuário no banco de dados por ID.

@@ -33,7 +33,7 @@ func (resposta *Resposta) Sucesso(StatusCode int, DadosResposta interface{}, Men
 // Erro: configura a resposta para um erro
 func (resposta *Resposta) Erro(StatusCode int, erro error, MensagemLogger string, DadosAdicionaisLogger ...interface{}) *Resposta {
 	resposta.StatusCode = StatusCode
-	resposta.dadoRetorno = erro
+	resposta.dadoRetorno = erro.Error()
 	resposta.Mensagem = fmt.Sprintf("%s , Id Requisição: %s, StatusCode: %d", MensagemLogger, resposta.Contexto, StatusCode)
 	resposta.DadosAdicionaisLogger = DadosAdicionaisLogger
 	logger.Logger().Error(resposta.Mensagem, erro, resposta.DadosAdicionaisLogger...)
