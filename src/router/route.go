@@ -17,6 +17,7 @@ func Gerar() *echo.Echo {
 		return c.String(http.StatusOK, time.Now().Format(time.RFC3339Nano))
 	})
 
+	e.Use(middleware.RequestID())
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:        true,
 		LogStatus:     true,
