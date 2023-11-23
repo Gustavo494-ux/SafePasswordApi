@@ -41,9 +41,9 @@ func CriarUsuario(c echo.Context) error {
 	repo := repository.NovoRepositorioUsuario(db)
 
 	usuarioBanco, err := repo.BuscarPorEmail(usuario.Email_Hash)
-	if err != nil && err != logsCatalogados.ErroRepositorio_DadosNaoEncontrados {
+	if err != logsCatalogados.ErroRepositorio_DadosNaoEncontrados {
 		return models.RespostaRequisicao(c).Erro(
-			http.StatusInternalServerError, err, logsCatalogados.LogsUsuario_UsuarioExistente,
+			http.StatusInternalServerError, errors.New(logsCatalogados.LogsUsuario_UsuarioExistente), logsCatalogados.LogsUsuario_UsuarioExistente,
 		).JSON()
 	}
 
