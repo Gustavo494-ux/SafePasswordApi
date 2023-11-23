@@ -41,7 +41,7 @@ func CriarUsuario(c echo.Context) error {
 	repo := repository.NovoRepositorioUsuario(db)
 
 	usuarioBanco, err := repo.BuscarPorEmail(usuario.Email_Hash)
-	if err != nil && err != logsCatalogados.ErroRepositorio_DadosNaoEncontrados {
+	if err != nil && err != logsCatalogados.LogsUsuario_UsuarioNaoExistente {
 		return models.RespostaRequisicao(c).Erro(
 			http.StatusInternalServerError, err, err.Error(),
 		).JSON()
@@ -49,7 +49,7 @@ func CriarUsuario(c echo.Context) error {
 
 	if usuarioBanco.ID > 0 {
 		return models.RespostaRequisicao(c).Erro(
-			http.StatusConflict, logsCatalogados.ErroUsuario_UsuarioExistente, logsCatalogados.ErroUsuario_UsuarioExistente.Error(),
+			http.StatusConflict, logsCatalogados.LogsUsuario_UsuarioExistente, logsCatalogados.LogsUsuario_UsuarioExistente.Error(),
 		).JSON()
 	}
 
@@ -62,13 +62,13 @@ func CriarUsuario(c echo.Context) error {
 
 	usuarioBanco, err = repo.BuscarPorId(uint64(usuarioId))
 	if err != nil {
-		if err == logsCatalogados.ErroRepositorio_DadosNaoEncontrados {
+		if err == logsCatalogados.LogsUsuario_UsuarioNaoExistente {
 			return models.RespostaRequisicao(c).Erro(
-				http.StatusInternalServerError, err, "Dados não encontrados após o cadastro",
+				http.StatusInternalServerError, err, err.Error(),
 			).JSON()
 		}
 		return models.RespostaRequisicao(c).Erro(
-			http.StatusInternalServerError, err, err.Error(),
+			http.StatusInternalServerError, err, logsCatalogados.ErroUsuario_GenericoConsulta.Error(),
 		).JSON()
 	}
 
@@ -78,7 +78,7 @@ func CriarUsuario(c echo.Context) error {
 		).JSON()
 	}
 
-	return models.RespostaRequisicao(c).Sucesso(http.StatusCreated, usuarioBanco, "Solicitação atendida sem erros").JSON()
+	return models.RespostaRequisicao(c).Sucesso(http.StatusCreated, usuarioBanco, logsCatalogados.LogSolicitacao_AtentidaComSucesso.Error()).JSON()
 }
 
 // BuscarUsuarioPorId encontra um usuário no banco de dados por ID.

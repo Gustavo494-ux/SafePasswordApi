@@ -3,12 +3,23 @@ package logsCatalogados
 import "errors"
 
 var (
+	//Logs
+	LogsUsuario_UsuarioExistente    = errors.New("o usuário já existe")
+	LogsUsuario_UsuarioNaoExistente = errors.New("usuário não encontrado")
+
+	//Erros de consulta
+	ErroUsuario_GenericoConsulta      = errors.New("ocorreu um erro ao buscar o usuário")
+	ErroUsuario_UsuarioNaoCadastradao = errors.New("usuario não encontrado mesmo após o cadastro. Entre em contato com o suporte")
+
+	//Erros ao preparar o usuário
 	ErroUsuario_PrepararCadastro = errors.New("ocorreu um erro ao preparar o usuário para cadastro")
 	ErroUsuario_PrepararConsulta = errors.New("ocorreu um erro ao preparar o usuário para consulta")
-	ErroUsuario_JsonInvalido     = errors.New("ocorreu um erro ao popular o usuario com dados da requisição")
-	ErroUsuario_NomeVazio        = errors.New("o nome do usuário é obrigatório")
-	ErroUsuario_EmailVazio       = errors.New("o email do usuário é obrigatório")
-	ErroUsuario_SenhaVazia       = errors.New("a senha do usuário é obrigatório")
-	ErroUsuario_EmailInvalido    = errors.New("o formato de email do usuário inválido")
-	ErroUsuario_UsuarioExistente = errors.New("o usuário já existe")
+
+	ErroUsuario_JsonInvalido = errors.New("ocorreu um erro ao captar os dados do usuário, verifique a estrutura e dados!")
+
+	//Dados incorretos ou vazios
+	ErroUsuario_NomeVazio     = errors.New("o nome do usuário é obrigatório")
+	ErroUsuario_EmailVazio    = errors.New("o email do usuário é obrigatório")
+	ErroUsuario_SenhaVazia    = errors.New("a senha do usuário é obrigatório")
+	ErroUsuario_EmailInvalido = errors.New("o formato de email do usuário inválido")
 )
