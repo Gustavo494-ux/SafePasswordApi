@@ -94,16 +94,18 @@ func BuscarUsuarioPorId(c echo.Context) error {
 	defer db.Close()
 
 	repo := repository.NovoRepositorioUsuario(db)
+
 	usuario, err := repo.BuscarPorId(usuarioId)
-	if err != nil && err != errors.New(logsCatalogados.LogsUsuario_UsuarioNaoExistente) {
+	if err == logsCatalogados.ErroRepositorio_DadosNaoEncontrados {
 		return models.RespostaRequisicao(c).Erro(
-			http.StatusInternalServerError, err, err.Error(),
+			http.StatusNotFound, logsCatalogados.ErroRepositorio_DadosNaoEncontrados,
+			logsCatalogados.ErroRepositorio_DadosNaoEncontrados.Error(),
 		).JSON()
 	}
 
-	if usuario.ID > 0 {
+	if err != nil {
 		return models.RespostaRequisicao(c).Erro(
-			http.StatusConflict, errors.New(logsCatalogados.LogsUsuario_UsuarioExistente), logsCatalogados.LogsUsuario_UsuarioExistente,
+			http.StatusInternalServerError, err, err.Error(),
 		).JSON()
 	}
 
