@@ -41,30 +41,24 @@ func CriarUsuario(c echo.Context) error {
 	repo := repository.NovoRepositorioUsuario(db)
 
 	usuarioBanco, err := repo.BuscarPorEmail(usuario.Email_Hash)
-	if err != nil && err != logsCatalogados.LogsUsuario_UsuarioNaoExistente {
+	if err != nil && err != logsCatalogados.ErroRepositorio_DadosNaoEncontrados {
 		return models.RespostaRequisicao(c).Erro(
-			http.StatusInternalServerError, err, err.Error(),
-		).JSON()
-	}
-
-	if usuarioBanco.ID > 0 {
-		return models.RespostaRequisicao(c).Erro(
-			http.StatusConflict, logsCatalogados.LogsUsuario_UsuarioExistente, logsCatalogados.LogsUsuario_UsuarioExistente.Error(),
+			http.StatusInternalServerError, err, logsCatalogados.LogsUsuario_UsuarioExistente,
 		).JSON()
 	}
 
 	usuarioId, err := repo.Criar(usuario)
 	if err != nil {
 		return models.RespostaRequisicao(c).Erro(
-			http.StatusInternalServerError, err, err.Error(),
+			http.StatusInternalServerError, err, logsCatalogados.ErroUsuario_Cadastro.Error(),
 		).JSON()
 	}
 
 	usuarioBanco, err = repo.BuscarPorId(uint64(usuarioId))
 	if err != nil {
-		if err == logsCatalogados.LogsUsuario_UsuarioNaoExistente {
+		if err == logsCatalogados.ErroRepositorio_DadosNaoEncontrados {
 			return models.RespostaRequisicao(c).Erro(
-				http.StatusInternalServerError, err, err.Error(),
+				http.StatusInternalServerError, err, logsCatalogados.ErroUsuario_UsuarioNaoCadastradao.Error(),
 			).JSON()
 		}
 		return models.RespostaRequisicao(c).Erro(
@@ -78,37 +72,48 @@ func CriarUsuario(c echo.Context) error {
 		).JSON()
 	}
 
-	return models.RespostaRequisicao(c).Sucesso(http.StatusCreated, usuarioBanco, logsCatalogados.LogSolicitacao_AtentidaComSucesso.Error()).JSON()
+	return models.RespostaRequisicao(c).Sucesso(http.StatusCreated, usuarioBanco, logsCatalogados.LogSolicitacao_AtentidaComSucesso).JSON()
 }
 
 // BuscarUsuarioPorId encontra um usuário no banco de dados por ID.
 func BuscarUsuarioPorId(c echo.Context) error {
 	usuarioId, err := strconv.ParseUint(c.Param("usuarioId"), 10, 64)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return models.RespostaRequisicao(c).Erro(
+			http.StatusBadRequest, err, logsCatalogados.ErroUsuario_JsonInvalido.Error(),
+			c.Param("usuarioId"),
+		).JSON()
 	}
 
 	db, err := database.Conectar()
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return models.RespostaRequisicao(c).Erro(
+			http.StatusInternalServerError, err, logsCatalogados.LogBanco_ErroConexao,
+		).JSON()
 	}
 	defer db.Close()
 
 	repo := repository.NovoRepositorioUsuario(db)
 	usuario, err := repo.BuscarPorId(usuarioId)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+	if err != nil && err != errors.New(logsCatalogados.LogsUsuario_UsuarioNaoExistente) {
+		return models.RespostaRequisicao(c).Erro(
+			http.StatusInternalServerError, err, err.Error(),
+		).JSON()
 	}
 
-	if usuario.ID == 0 {
-		return c.JSON(http.StatusNotFound, errors.New("nenhum usuário encontrado"))
+	if usuario.ID > 0 {
+		return models.RespostaRequisicao(c).Erro(
+			http.StatusConflict, errors.New(logsCatalogados.LogsUsuario_UsuarioExistente), logsCatalogados.LogsUsuario_UsuarioExistente,
+		).JSON()
 	}
 
 	if err := usuario.Preparar(enum.TipoPreparacao_Consulta); err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return models.RespostaRequisicao(c).Erro(
+			http.StatusInternalServerError, err, logsCatalogados.ErroUsuario_PrepararConsulta.Error(),
+		).JSON()
 	}
 
-	return c.JSON(http.StatusOK, usuario)
+	return models.RespostaRequisicao(c).Sucesso(http.StatusCreated, usuario, logsCatalogados.LogSolicitacao_AtentidaComSucesso).JSON()
 }
 
 // BuscarTodosUsuarios recupera todos os usuários salvos no banco de dados.
