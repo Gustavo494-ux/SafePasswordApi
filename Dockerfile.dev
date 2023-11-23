@@ -1,7 +1,7 @@
 # ## GO lang com live-reload para desenvolvimento
 
 # ! ## STAGE 1 - Maquina para armazenar as dependencias
-FROM golang:1.20.1 AS environment-go-dependences
+FROM golang:1.21.4 AS environment-go-dependences
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt-get -y upgrade
