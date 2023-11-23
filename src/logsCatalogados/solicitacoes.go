@@ -1,8 +1,6 @@
 package logsCatalogados
 
-import "errors"
-
 var (
 	//Logs de solicitação
-	LogSolicitacao_AtentidaComSucesso = errors.New("solicitação atendida com sucesso")
+	LogSolicitacao_AtentidaComSucesso = "solicitação atendida com sucesso"
 )
